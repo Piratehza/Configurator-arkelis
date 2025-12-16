@@ -1,0 +1,729 @@
+// ============================================
+// CYRÉLIS - SCHÉMA DE DONNÉES COMPLET
+// Stack: PostgreSQL + Prisma + NextAuth
+// Architecture Multi-tenant B2B
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// 1. ORGANISATIONS (Multi-tenant B2B)
+// ============================================
+
+model Organization {
+  id          String             @id @default(cuid())
+  name        String             // Nom de l'entreprise
+  slug        String             @unique // URL-friendly identifier
+  siret       String?            // Numéro SIRET (14 chiffres)
+  vatNumber   String?            // Numéro TVA intracommunautaire
+  
+  // Adresse
+  address     String?
+  city        String?
+  postalCode  String?
+  country     String             @default("France")
+  
+  // Contact principal
+  contactEmail String?
+  contactPhone String?
+  
+  // Offre active
+  activeOffer  OrganizationOffer @default(NONE)
+  offerStatus  SubscriptionStatus @default(PENDING)
+  
+  // Limites
+  maxUsers    Int                @default(10)
+  
+  // Facturation
+  billingEmail String?
+  
+  // Relations
+  users       User[]
+  subscriptions Subscription[]
+  invoices    Invoice[]
+  documents   Document[]
+  tickets     SupportTicket[]
+  
+  // Metadata
+  notes       String?            @db.Text // Notes internes (admin)
+  
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  
+  @@index([name])
+  @@index([siret])
+  @@index([activeOffer])
+}
+
+// ============================================
+// 2. AUTHENTIFICATION (NextAuth.js + 2FA)
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?   // Hash bcrypt pour login email/password
+  name          String?
+  image         String?
+  phone         String?
+  
+  // Type d'utilisateur
+  userType      UserType  @default(CLIENT)
+  role          UserRole  @default(CLIENT)
+  
+  // Organisation (Multi-tenant)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  
+  // Champs legacy (pour compatibilité - à migrer vers Organization)
+  company       String?   // @deprecated - utiliser organization.name
+  siret         String?   // @deprecated - utiliser organization.siret
+  address       String?   // @deprecated - utiliser organization.address
+  
+  // 2FA TOTP
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?   // Secret TOTP chiffré
+  twoFactorVerified Boolean   @default(false) // A été vérifié au moins une fois
+  backupCodes       String[]  // Codes de secours hashés
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  subscriptions Subscription[]
+  invoices      Invoice[]
+  documents     Document[]
+  tickets       SupportTicket[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  passwordResets PasswordResetToken[]
+  passkeys      Passkey[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([email])
+  @@index([role])
+  @@index([userType])
+  @@index([organizationId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  // 2FA validée pour cette session
+  twoFactorValidated Boolean @default(false)
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Token pour réinitialisation de mot de passe
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  expiresAt DateTime
+  usedAt    DateTime?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
+}
+
+// ============================================
+// PASSKEYS (WebAuthn)
+// ============================================
+
+model Passkey {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Identifiants WebAuthn
+  credentialId        String   @unique  // Base64URL encoded credential ID
+  publicKey           String   @db.Text // Base64URL encoded public key
+  counter             BigInt   @default(0) // Signature counter for replay protection
+  
+  // Metadata
+  deviceName          String?  // "MacBook Pro", "iPhone 15", etc.
+  deviceType          String?  // "platform" ou "cross-platform"
+  transports          String[] // ["internal", "usb", "ble", "nfc"]
+  
+  // Authenticator info
+  aaguid              String?  // Authenticator Attestation GUID
+  
+  // Dates
+  lastUsedAt          DateTime?
+  createdAt           DateTime @default(now())
+  
+  @@index([userId])
+  @@index([credentialId])
+}
+
+// Challenge temporaire pour WebAuthn
+model WebAuthnChallenge {
+  id        String   @id @default(cuid())
+  challenge String   @unique
+  userId    String?  // Null pour registration, set pour authentication
+  type      String   // "registration" ou "authentication"
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([challenge])
+  @@index([expiresAt])
+}
+
+// ============================================
+// 3. CATALOGUE PRODUITS / OFFRES
+// ============================================
+
+model Offer {
+  id          String      @id @default(cuid())
+  name        String      // "Offre Autonomie", "Module IA Sécurité", etc.
+  slug        String      @unique // URL-friendly: "autonomy", "ia-security"
+  description String?     @db.Text
+  shortDesc   String?     // Description courte pour les cartes
+  
+  // Tarification
+  priceType   PriceType   @default(MONTHLY)
+  basePrice   Float       // Prix de base mensuel ou unitaire
+  pricePerUser Float?     // Prix par utilisateur (si applicable)
+  setupFee    Float       @default(0) // Frais de mise en place
+  
+  // Type d'offre (pour le modèle BUILD/RUN)
+  offerType   OfferTypeEnum @default(SUBSCRIPTION) // SUBSCRIPTION, ADDON, ONE_SHOT
+  
+  // Restriction (pour les extras réservés à une offre)
+  restrictedToSlug String? // "partner" = réservé à l'offre Partenaire
+  
+  // Quota (pour les addons)
+  quota       String?     // "30 requêtes/user/mois"
+  
+  // Catégorisation
+  category    OfferCategory @default(SECURITY)
+  isActive    Boolean     @default(true)
+  isPopular   Boolean     @default(false)
+  sortOrder   Int         @default(0)
+  
+  // Features incluses (JSON array)
+  features    String[]    // ["Coffre-fort illimité", "Partage sécurisé", ...]
+  
+  // Relations
+  subscriptionItems SubscriptionItem[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([category])
+  @@index([isActive])
+  @@index([offerType])
+}
+
+// ============================================
+// 4. ABONNEMENTS & LICENCES
+// ============================================
+
+model Subscription {
+  id              String             @id @default(cuid())
+  
+  // Peut être lié à un User OU une Organization
+  userId          String?
+  user            User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId  String?
+  organization    Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  status          SubscriptionStatus @default(PENDING)
+  
+  // Type d'offre choisie
+  offerType       OrganizationOffer  @default(AUTONOMY)
+  
+  // Dates
+  startDate       DateTime?
+  endDate         DateTime?          // Null = pas de fin prévue
+  trialEndsAt     DateTime?          // Période d'essai
+  cancelledAt     DateTime?
+  
+  // Facturation
+  billingCycle    BillingCycle       @default(MONTHLY)
+  nextBillingDate DateTime?
+  
+  // Stripe
+  stripeCustomerId     String?       @unique
+  stripeSubscriptionId String?       @unique
+  
+  // Montants calculés
+  totalMonthly    Float              @default(0)
+  buildTotal      Float              @default(0) // Montant one-shot BUILD
+  
+  // Notes internes (admin)
+  internalNotes   String?            @db.Text
+  
+  // Relations
+  items           SubscriptionItem[]
+  invoices        Invoice[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+model SubscriptionItem {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  offerId        String
+  offer          Offer        @relation(fields: [offerId], references: [id])
+  
+  // Quantité (nombre de licences/utilisateurs)
+  quantity       Int          @default(1)
+  
+  // Prix au moment de la souscription (peut différer du prix actuel)
+  unitPrice      Float
+  
+  // Statut de la ligne
+  isActive       Boolean      @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([subscriptionId])
+  @@index([offerId])
+}
+
+// ============================================
+// 5. FACTURATION
+// ============================================
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique // Format: CYR-2024-0001
+  
+  // Peut être lié à un User OU une Organization
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  
+  // Montants
+  subtotal       Float
+  taxRate        Float         @default(20) // TVA 20%
+  taxAmount      Float
+  total          Float
+  
+  // Statut
+  status         InvoiceStatus @default(DRAFT)
+  
+  // Dates
+  issueDate      DateTime      @default(now())
+  dueDate        DateTime
+  paidAt         DateTime?
+  
+  // Stripe
+  stripeInvoiceId  String?     @unique
+  stripePaymentUrl String?
+  
+  // PDF
+  pdfUrl         String?
+  
+  // Lignes de facture (JSON pour simplicité)
+  lineItems      Json          // [{description, quantity, unitPrice, total}]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([issueDate])
+}
+
+// ============================================
+// 6. DOCUMENTS
+// ============================================
+
+model Document {
+  id             String       @id @default(cuid())
+  
+  // Peut être lié à un User OU une Organization
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  name        String       // "Contrat de service", "Guide Bitwarden"
+  type        DocumentType
+  description String?
+  
+  // Fichier
+  fileUrl     String
+  fileSize    Int?         // En bytes
+  mimeType    String?
+  
+  // Visibilité
+  isPublic    Boolean      @default(false) // Visible par le client
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([type])
+}
+
+// ============================================
+// 7. SUPPORT & TICKETS
+// ============================================
+
+model SupportTicket {
+  id          String         @id @default(cuid())
+  ticketNumber String        @unique // Format: TKT-2024-0001
+  
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  
+  subject     String
+  description String         @db.Text
+  
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+  category    TicketCategory @default(GENERAL)
+  
+  // Assignation (admin qui gère)
+  assignedTo  String?
+  
+  // Dates
+  resolvedAt  DateTime?
+  
+  // Messages
+  messages    TicketMessage[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([priority])
+}
+
+model TicketMessage {
+  id        String        @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  authorId  String        // ID de l'auteur (User)
+  authorName String       // Nom affiché
+  isAdmin   Boolean       @default(false)
+  
+  content   String        @db.Text
+  
+  // Pièces jointes
+  attachments String[]    // URLs des fichiers
+  
+  createdAt DateTime @default(now())
+  
+  @@index([ticketId])
+}
+
+// ============================================
+// 8. NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  
+  // Lien vers une ressource (optionnel)
+  actionUrl String?
+  
+  // Statut
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  
+  // Email envoyé ?
+  emailSent Boolean          @default(false)
+  emailSentAt DateTime?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================
+// 9. AUDIT & LOGS
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  action    String   // "USER_LOGIN", "SUBSCRIPTION_CREATED", etc.
+  entity    String   // "User", "Subscription", "Invoice"
+  entityId  String?  // ID de l'entité concernée
+  
+  // Détails (JSON)
+  oldData   Json?    // État avant modification
+  newData   Json?    // État après modification
+  
+  // Contexte
+  ipAddress String?
+  userAgent String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+// ============================================
+// 10. CONTACTS & DEMANDES
+// ============================================
+
+model Contact {
+  id        String        @id @default(cuid())
+  
+  name      String
+  email     String
+  company   String?
+  phone     String?
+  message   String        @db.Text
+  source    String        @default("website") // website, simulateur, etc.
+  
+  status    ContactStatus @default(NEW)
+  
+  // Réponse
+  repliedAt DateTime?
+  repliedBy String?
+  
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ContactStatus {
+  NEW       // Nouveau message
+  READ      // Lu par l'équipe
+  REPLIED   // Réponse envoyée
+  ARCHIVED  // Archivé
+}
+
+// ============================================
+// 11. CONFIGURATION SYSTÈME & PRICING
+// ============================================
+
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @db.Text
+  
+  updatedAt DateTime @updatedAt
+}
+
+// Configuration des prix (modifiable via Admin)
+model PricingSettings {
+  id              String   @id @default(cuid())
+  
+  // BUILD (One-Shot)
+  buildBaseFee    Float    @default(490)  // Frais fixes socle
+  buildPerUserFee Float    @default(15)   // Frais par utilisateur
+  
+  // RUN (Mensuel) - Offre Autonomie
+  autonomyMonthly Float    @default(6)    // Prix /user/mois
+  
+  // RUN (Mensuel) - Offre Partenaire
+  partnerMonthly  Float    @default(12)   // Prix /user/mois
+  
+  // Module IA
+  iaModuleMonthly Float    @default(3)    // Prix /user/mois
+  
+  // TVA
+  vatRate         Float    @default(20)   // Taux TVA en %
+  
+  // Limites
+  minUsers        Int      @default(1)
+  maxUsers        Int      @default(500)
+  
+  // Metadata
+  lastModifiedBy  String?  // ID de l'admin qui a modifié
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserType {
+  INTERNAL   // Équipe Cyrélis (Matthieu, Ethan, futurs employés)
+  CLIENT     // Clients externes
+}
+
+enum UserRole {
+  ADMIN      // Administrateur (accès total)
+  CLIENT     // Client abonné
+  PROSPECT   // Prospect (pas encore client)
+}
+
+enum OrganizationOffer {
+  NONE       // Pas d'offre active
+  AUTONOMY   // Offre Autonomie (6€/user)
+  PARTNER    // Offre Partenaire (12€/user)
+}
+
+enum PriceType {
+  MONTHLY    // Abonnement mensuel
+  YEARLY     // Abonnement annuel
+  ONE_TIME   // Paiement unique
+  PER_USER   // Par utilisateur/mois
+}
+
+enum OfferCategory {
+  SECURITY   // Bitwarden, MFA, etc.
+  BACKUP     // Sauvegardes
+  SUPPORT    // Support premium
+  TRAINING   // Formation
+  ADDON      // Options supplémentaires
+}
+
+// Type d'offre pour le modèle BUILD/RUN
+enum OfferTypeEnum {
+  SUBSCRIPTION  // Offres récurrentes (Autonomie, Partenaire)
+  ADDON         // Modules complémentaires récurrents (Module IA)
+  ONE_SHOT      // Services ponctuels (Audit, Migration, etc.)
+}
+
+enum SubscriptionStatus {
+  PENDING     // En attente de paiement
+  TRIAL       // Période d'essai
+  ACTIVE      // Actif
+  PAST_DUE    // Paiement en retard
+  CANCELLED   // Annulé
+  EXPIRED     // Expiré
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum InvoiceStatus {
+  DRAFT      // Brouillon
+  PENDING    // En attente de paiement
+  PAID       // Payée
+  OVERDUE    // En retard
+  CANCELLED  // Annulée
+  REFUNDED   // Remboursée
+}
+
+enum DocumentType {
+  CONTRACT   // Contrat
+  INVOICE    // Facture PDF
+  GUIDE      // Guide utilisateur
+  REPORT     // Rapport de sécurité
+  OTHER
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  GENERAL
+  BILLING
+  TECHNICAL
+  SECURITY_INCIDENT
+  FEATURE_REQUEST
+}
+
+enum NotificationType {
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_RENEWED
+  SUBSCRIPTION_CANCELLED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  INVOICE_CREATED
+  TICKET_CREATED
+  TICKET_REPLY
+  LICENSE_ADDED
+  DOCUMENT_SHARED
+  SYSTEM_ALERT
+  TWO_FACTOR_ENABLED
+  PASSWORD_RESET
+}

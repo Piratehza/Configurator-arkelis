@@ -1,0 +1,107 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# CYRÉLIS - Configuration Netlify
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ BUILD PRINCIPAL (Production)                                                │
+# └─────────────────────────────────────────────────────────────────────────────┘
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ CONTEXTE: PRODUCTION (branche main)                                         │
+# │ → Affiche la page "En construction"                                         │
+# └─────────────────────────────────────────────────────────────────────────────┘
+[context.production]
+  command = "npm run build"
+  [context.production.environment]
+    APP_ENV = "production"
+    NODE_ENV = "production"
+    SHOW_COMING_SOON = "true"
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ CONTEXTE: STAGING (branche staging ou develop)                              │
+# │ → Affiche le site complet pour les tests                                    │
+# └─────────────────────────────────────────────────────────────────────────────┘
+[context.staging]
+  command = "npm run build"
+  [context.staging.environment]
+    APP_ENV = "staging"
+    NODE_ENV = "production"
+    SHOW_COMING_SOON = "false"
+
+[context.develop]
+  command = "npm run build"
+  [context.develop.environment]
+    APP_ENV = "staging"
+    NODE_ENV = "production"
+    SHOW_COMING_SOON = "false"
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ CONTEXTE: DEPLOY PREVIEW (Pull Requests)                                    │
+# │ → Affiche le site complet pour les tests                                    │
+# └─────────────────────────────────────────────────────────────────────────────┘
+[context.deploy-preview]
+  command = "npm run build"
+  [context.deploy-preview.environment]
+    APP_ENV = "staging"
+    NODE_ENV = "production"
+    SHOW_COMING_SOON = "false"
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ CONTEXTE: BRANCH DEPLOY (autres branches)                                   │
+# │ → Affiche le site complet pour les tests                                    │
+# └─────────────────────────────────────────────────────────────────────────────┘
+[context.branch-deploy]
+  command = "npm run build"
+  [context.branch-deploy.environment]
+    APP_ENV = "staging"
+    NODE_ENV = "production"
+    SHOW_COMING_SOON = "false"
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ PLUGIN NEXT.JS                                                              │
+# └─────────────────────────────────────────────────────────────────────────────┘
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ HEADERS DE SÉCURITÉ                                                         │
+# └─────────────────────────────────────────────────────────────────────────────┘
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    # Content-Security-Policy à activer en production après tests
+    # Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+
+# Cache pour les assets statiques
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │ REDIRECTIONS                                                                │
+# └─────────────────────────────────────────────────────────────────────────────┘
+# Redirection www vers non-www
+[[redirects]]
+  from = "https://www.cyrelis.fr/*"
+  to = "https://cyrelis.fr/:splat"
+  status = 301
+  force = true
+
