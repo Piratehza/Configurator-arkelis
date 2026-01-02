@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyrélis Deployer - Révision Utilisateurs</title>
+    <style>
+        :root {
+            --bleu-abysse: #0F172A;
+            --menthe-cyrelis: #2DD4BF;
+            --blanc-pur: #FFFFFF;
+            --gris-vapeur: #F1F5F9;
+            --corail-urgence: #FB7185;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gris-vapeur);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: var(--bleu-abysse);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 {
+            color: var(--blanc-pur);
+            font-size: 20px;
+        }
+        
+        .navbar h1 span {
+            color: var(--menthe-cyrelis);
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .navbar-links a {
+            color: var(--blanc-pur);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .navbar-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .page-header h2 {
+            color: var(--bleu-abysse);
+            font-size: 28px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--menthe-cyrelis);
+            color: var(--bleu-abysse);
+        }
+        
+        .btn-secondary {
+            background: var(--bleu-abysse);
+            color: var(--blanc-pur);
+        }
+        
+        .users-table {
+            background: var(--blanc-pur);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--bleu-abysse);
+            color: var(--blanc-pur);
+            padding: 16px;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        
+        tr:hover {
+            background: var(--gris-vapeur);
+        }
+        
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .role-user {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+        
+        .role-admin {
+            background: rgba(45, 212, 191, 0.2);
+            color: #0d9488;
+        }
+        
+        .role-manager {
+            background: rgba(251, 191, 36, 0.2);
+            color: #d97706;
+        }
+        
+        .role-select {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .apps-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .app-tag {
+            background: var(--gris-vapeur);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--corail-urgence);
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 64px;
+            color: #64748b;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: var(--bleu-abysse);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Cyrélis <span>Deployer</span></h1>
+        <div class="navbar-links">
+            <a href="/">Dashboard</a>
+            <a href="/csv-transformer">Transformateur CSV</a>
+            <a href="/credentials-form">Saisie Identifiants</a>
+            <a href="/logout">Déconnexion</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="page-header">
+            <h2>👀 Révision des Utilisateurs</h2>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="saveBtn">💾 Sauvegarder</button>
+                <a href="/" class="btn btn-primary">🚀 Passer au déploiement</a>
+            </div>
+        </div>
+        
+        <div class="users-table" id="usersTable">
+            <div class="empty-state" id="emptyState">
+                <h3>Aucune donnée</h3>
+                <p>Transformez d'abord un fichier CSV/Excel</p>
+                <a href="/csv-transformer" class="btn btn-primary" style="margin-top: 16px;">Aller au transformateur</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let usersData = [];
+        
+        async function loadData() {
+            try {
+                const response = await fetch('/api/get-transformed-data');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    usersData = result.data;
+                    renderTable();
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+        
+        function renderTable() {
+            const container = document.getElementById('usersTable');
+            
+            if (usersData.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Aucune donnée</h3>
+                        <p>Transformez d'abord un fichier CSV/Excel</p>
+                        <a href="/csv-transformer" class="btn btn-primary" style="margin-top: 16px;">Aller au transformateur</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Applications</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            usersData.forEach((user, index) => {
+                const apps = user.collections || [];
+                html += `
+                    <tr>
+                        <td>${user.email}</td>
+                        <td>
+                            <select class="role-select" onchange="updateRole(${index}, this.value)">
+                                <option value="0" ${user.type === 0 ? 'selected' : ''}>User</option>
+                                <option value="3" ${user.type === 3 ? 'selected' : ''}>Manager</option>
+                                <option value="2" ${user.type === 2 ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div class="apps-list">
+                                ${apps.map(app => `<span class="app-tag">${app}</span>`).join('')}
+                                ${apps.length === 0 ? '<span style="color: #94a3b8;">Aucune</span>' : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <button class="delete-btn" onclick="deleteUser(${index})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function updateRole(index, value) {
+            usersData[index].type = parseInt(value);
+        }
+        
+        function deleteUser(index) {
+            usersData.splice(index, 1);
+            renderTable();
+        }
+        
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/save-reviewed-users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ users: usersData })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('✅ Modifications sauvegardées !');
+                }
+            } catch (error) {
+                alert('❌ Erreur lors de la sauvegarde');
+            }
+        });
+        
+        loadData();
+    </script>
+</body>
+</html>
+

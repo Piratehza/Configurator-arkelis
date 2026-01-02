@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cyrélis - Site Vitrine
 
-## Getting Started
+Site vitrine de **Cyrélis**, spécialiste en cybersécurité managée pour TPE/PME.
 
-First, run the development server:
+## 🚀 Stack Technique
+
+- **Framework**: Next.js 16 (App Router)
+- **UI**: Tailwind CSS + Framer Motion
+- **Email**: Resend (ou SMTP)
+- **Hébergement**: Netlify
+
+## 📋 Fonctionnalités
+
+- ✅ Page d'accueil avec présentation des services
+- ✅ Configurateur d'offres interactif
+- ✅ Formulaire de contact avec envoi d'emails
+- ✅ Pages légales (Mentions légales, CGV, Confidentialité)
+- ✅ Page "À propos"
+- ✅ SEO optimisé (robots.txt, sitemap.xml)
+
+## 🛠️ Installation
 
 ```bash
+# Cloner le repo
+git clone https://github.com/votre-repo/cyrelis.git
+cd cyrelis
+
+# Installer les dépendances
+npm install
+
+# Copier la configuration
+cp .env.example .env
+
+# Lancer en développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⚙️ Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Variables d'environnement
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copier `.env.example` vers `.env` et configurer :
 
-## Learn More
+```env
+# URL du site
+NEXT_PUBLIC_BASE_URL=https://cyrelis.fr
 
-To learn more about Next.js, take a look at the following resources:
+# Email (Resend)
+RESEND_API_KEY=re_xxxxx
+EMAIL_FROM=noreply@cyrelis.fr
+ADMIN_NOTIFICATION_EMAIL=contact@cyrelis.fr
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Configuration Resend
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Créer un compte sur [resend.com](https://resend.com)
+2. Vérifier votre domaine
+3. Créer une API Key
+4. Ajouter la clé dans `.env`
 
-## Deploy on Vercel
+## 🚀 Déploiement sur Netlify
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Via Git
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Connecter le repo GitHub à Netlify
+2. Configurer les variables d'environnement dans Netlify
+3. Build command: `npm run build`
+4. Publish directory: `.next`
+
+### Via CLI
+
+```bash
+npm install -g netlify-cli
+netlify login
+netlify init
+netlify deploy --prod
+```
+
+## 📁 Structure du projet
+
+```
+app/
+├── (public)/           # Pages publiques
+│   ├── page.tsx        # Accueil
+│   ├── simulateur/     # Configurateur
+│   ├── contact/        # Formulaire contact
+│   ├── a-propos/       # Notre histoire
+│   ├── mentions-legales/
+│   ├── cgv/
+│   └── confidentialite/
+├── api/
+│   └── contact/        # API envoi email
+├── robots.ts           # SEO robots.txt
+└── sitemap.ts          # SEO sitemap.xml
+
+src/
+├── components/         # Composants UI
+│   ├── layout/         # Navbar, Footer
+│   └── ui/             # Boutons, etc.
+└── lib/
+    └── email.ts        # Service d'email
+```
+
+## 📞 Contact
+
+- **Email**: contact@cyrelis.fr
+- **Site**: https://cyrelis.fr
+
+---
+
+© 2024-2026 Cyrélis - Matthieu Vallet EI

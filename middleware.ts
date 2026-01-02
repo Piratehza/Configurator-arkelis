@@ -1,12 +1,15 @@
-import NextAuth from "next-auth";
-import { authConfig } from "@/lib/auth.config";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-// Middleware utilisant la configuration sans Prisma (compatible Edge)
-export default NextAuth(authConfig).auth;
+// Middleware simplifié - Site vitrine sans authentification
+export function middleware(request: NextRequest) {
+  // Pas de logique d'auth nécessaire pour un site vitrine
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
-    // Matcher toutes les routes sauf assets statiques
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Ne matcher que les routes API pour éviter le traitement inutile
+    '/api/:path*',
   ],
 };

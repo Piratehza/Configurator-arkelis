@@ -16,47 +16,44 @@ const inter = Inter({
   display: "swap",
 });
 
-const baseUrl = process.env.NEXTAUTH_URL || 'https://cyrelis.fr';
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://cyrelis.fr';
 
 export const metadata: Metadata = {
-  // Métadonnées de base
   title: {
     default: "Cyrélis | Cybersécurité Résiliente et Lisible pour TPE",
     template: "%s | Cyrélis",
   },
-  description: "Cyrélis rend la cybersécurité accessible aux TPE et indépendants. Gestion de mots de passe Bitwarden, authentification MFA, sauvegardes sécurisées. Partenaire officiel Bitwarden.",
+  description: "Cyrélis rend la cybersécurité accessible aux TPE et indépendants. Gestion de mots de passe Bitwarden, protection endpoints SentinelOne, supervision NinjaOne. Partenaire officiel.",
   keywords: [
     "cybersécurité TPE",
     "sécurité informatique PME",
     "Bitwarden partenaire",
+    "SentinelOne France",
+    "NinjaOne MSP",
     "gestionnaire mots de passe entreprise",
-    "MFA authentification",
-    "sécurité données TPE",
+    "protection endpoints",
     "MSP cybersécurité France",
-    "protection données entreprise",
   ],
   authors: [{ name: "Cyrélis", url: baseUrl }],
   creator: "Cyrélis",
   publisher: "Cyrélis",
   
-  // Configuration robots (complète le fichier robots.ts)
   robots: {
-    index: process.env.APP_ENV === 'production',
-    follow: process.env.APP_ENV === 'production',
+    index: process.env.NODE_ENV === 'production',
+    follow: process.env.NODE_ENV === 'production',
     googleBot: {
-      index: process.env.APP_ENV === 'production',
-      follow: process.env.APP_ENV === 'production',
+      index: process.env.NODE_ENV === 'production',
+      follow: process.env.NODE_ENV === 'production',
     },
   },
 
-  // Open Graph (Facebook, LinkedIn)
   openGraph: {
     type: "website",
     locale: "fr_FR",
     url: baseUrl,
     siteName: "Cyrélis",
     title: "Cyrélis | Cybersécurité Résiliente et Lisible",
-    description: "Nous rendons la cybersécurité accessible aux TPE et indépendants. Bitwarden, MFA, sauvegardes sécurisées.",
+    description: "Nous rendons la cybersécurité accessible aux TPE et indépendants. Bitwarden, SentinelOne, NinjaOne.",
     images: [
       {
         url: `${baseUrl}/og-image.png`,
@@ -67,7 +64,6 @@ export const metadata: Metadata = {
     ],
   },
 
-  // Twitter Card
   twitter: {
     card: "summary_large_image",
     title: "Cyrélis | Cybersécurité Résiliente et Lisible",
@@ -75,26 +71,18 @@ export const metadata: Metadata = {
     images: [`${baseUrl}/og-image.png`],
   },
 
-  // Icônes
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
 
-  // Manifest PWA (optionnel)
   manifest: "/site.webmanifest",
 
-  // Métadonnées supplémentaires
   metadataBase: new URL(baseUrl),
   alternates: {
     canonical: "/",
   },
-  
-  // Vérification Google Search Console (à remplir)
-  // verification: {
-  //   google: "votre-code-verification",
-  // },
 };
 
 export default function RootLayout({
@@ -106,7 +94,7 @@ export default function RootLayout({
     <html lang="fr" className="scroll-smooth">
       <body className={`${inter.variable} ${outfit.variable} font-sans bg-slate-50 text-slate-900 antialiased`}>
         <Providers>
-        {children}
+          {children}
         </Providers>
       </body>
     </html>

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import {
   KeyRound,
   Shield,
@@ -10,105 +9,182 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  Lock,
-  Cpu,
   Settings,
-  FileSearch,
-  Zap,
-  Building2,
-  Loader2,
-  Sparkles,
-  TrendingUp,
   HelpCircle,
-  RefreshCcw,
-  Wrench,
-  Headphones,
-  BookOpen,
-  Target,
-  GraduationCap,
-  Phone,
-  Mail,
   ChevronDown,
   ChevronUp,
-  Info,
+  Server,
+  Bot,
+  X,
+  CloudUpload,
+  Mail,
+  Phone,
+  Building2,
+  MessageSquare,
+  Send,
+  Loader2,
+  Lock,
+  RefreshCcw,
+  Headphones,
+  FileSearch,
+  Zap,
+  Database,
+  ShieldCheck,
+  Monitor,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  HeroBackground,
-  GridBackground,
-  FloatingShapes,
-} from "@/components/backgrounds/AnimatedBackground";
 
 // ============================================================
-// TYPES
+// TYPES & CONFIG
 // ============================================================
-interface Offer {
+
+interface OfferConfig {
   id: string;
   name: string;
-  slug: string;
-  description: string | null;
-  shortDesc: string | null;
-  priceType: string;
-  basePrice: number;
-  pricePerUser: number | null;
-  setupFee: number;
-  offerType: string;
-  restrictedToSlug: string | null;
-  quota: string | null;
-  category: string;
+  tagline: string;
+  description: string;
+  longDescription: string;
+  unitType: "utilisateur" | "poste";
   isPopular: boolean;
-  features: string[];
+  icon: React.ElementType;
+  color: string;
+  features: { text: string; included: boolean; detail?: string }[];
+  highlights: { icon: React.ElementType; title: string; desc: string }[];
+  idealFor: string[];
 }
 
-interface PricingConfig {
-  buildBaseFee: number;
-  buildPerUserFee: number;
-  vatRate: number;
-  minUsers: number;
-  maxUsers: number;
-}
+// Offres détaillées
+const OFFERS: OfferConfig[] = [
+  {
+    id: "acces",
+    name: "ACCÈS",
+    tagline: "Gestion des identifiants",
+    description: "Sécurisez les mots de passe de votre équipe avec Bitwarden Enterprise.",
+    longDescription: "La solution idéale pour centraliser et protéger tous les accès de votre entreprise. Fini les mots de passe sur post-it ou fichiers Excel. Chaque collaborateur dispose d'un coffre-fort personnel et peut partager des accès de manière sécurisée avec l'équipe.",
+    unitType: "utilisateur",
+    isPopular: false,
+    icon: KeyRound,
+    color: "teal",
+    features: [
+      { text: "Bitwarden Enterprise", included: true, detail: "Licence professionnelle complète" },
+      { text: "Coffre-fort personnel illimité", included: true, detail: "Mots de passe, notes, cartes bancaires" },
+      { text: "Partage d'équipe sécurisé", included: true, detail: "Collections partagées avec contrôle d'accès" },
+      { text: "Chiffrement AES-256 Zero-Knowledge", included: true, detail: "Même nous n'avons pas accès à vos données" },
+      { text: "Authentification 2FA obligatoire", included: true, detail: "Double sécurité pour chaque compte" },
+      { text: "Générateur de mots de passe", included: true, detail: "Création automatique de mots de passe forts" },
+      { text: "Extensions navigateur & apps mobile", included: true, detail: "Chrome, Firefox, Safari, iOS, Android" },
+      { text: "Protection des postes (Antivirus)", included: false },
+      { text: "Maintenance proactive", included: false },
+      { text: "Sauvegarde Cloud", included: false },
+    ],
+    highlights: [
+      { icon: Lock, title: "Zéro connaissance", desc: "Vos données sont chiffrées avant de quitter votre appareil" },
+      { icon: Users, title: "Gestion d'équipe", desc: "Ajoutez/retirez des membres en quelques clics" },
+      { icon: RefreshCcw, title: "Synchronisation", desc: "Accès instantané sur tous vos appareils" },
+    ],
+    idealFor: ["Indépendants", "Petites équipes", "Entreprises qui veulent sécuriser leurs accès"],
+  },
+  {
+    id: "serenite",
+    name: "SÉRÉNITÉ",
+    tagline: "Protection complète du poste",
+    description: "Protection managée complète : antivirus IA, maintenance proactive et gestion des mots de passe.",
+    longDescription: "Votre parc informatique sous haute protection. Nous installons, configurons et surveillons en permanence vos postes de travail. Antivirus de nouvelle génération avec IA, mises à jour automatiques, et intervention rapide en cas de problème. Vous vous concentrez sur votre métier, nous gérons votre sécurité.",
+    unitType: "poste",
+    isPopular: true,
+    icon: Shield,
+    color: "blue",
+    features: [
+      { text: "Tout le pack ACCÈS inclus", included: true, detail: "Bitwarden Enterprise pour tous vos utilisateurs" },
+      { text: "SentinelOne (Antivirus IA)", included: true, detail: "Protection temps réel contre ransomwares et malwares" },
+      { text: "NinjaOne (Pilotage & Maintenance)", included: true, detail: "Surveillance 24/7, mises à jour automatiques" },
+      { text: "Rollback automatique", included: true, detail: "Annulation des actions malveillantes en un clic" },
+      { text: "Alertes proactives", included: true, detail: "Espace disque, santé système, menaces détectées" },
+      { text: "Intervention à distance", included: true, detail: "Résolution rapide sans vous déranger" },
+      { text: "Rapports mensuels de santé", included: true, detail: "Visibilité complète sur l'état de votre parc" },
+      { text: "Support téléphone prioritaire", included: true, detail: "Réponse sous 4h ouvrées" },
+      { text: "Mise en conformité (RGPD, NIS2)", included: true, detail: "Accompagnement réglementaire" },
+      { text: "Sauvegarde données Cloud", included: false },
+    ],
+    highlights: [
+      { icon: Bot, title: "IA autonome", desc: "SentinelOne détecte et bloque les menaces sans intervention humaine" },
+      { icon: Wrench, title: "Maintenance invisible", desc: "Mises à jour de nuit, vous ne voyez rien" },
+      { icon: Headphones, title: "Support dédié", desc: "Un interlocuteur qui connaît votre entreprise" },
+    ],
+    idealFor: ["TPE/PME", "Cabinets comptables", "Professions libérales", "Artisans avec données sensibles"],
+  },
+  {
+    id: "integrale",
+    name: "INTÉGRALE",
+    tagline: "Postes + Données Cloud",
+    description: "Protection totale : postes sécurisés + sauvegarde de vos données Microsoft 365 et Google Workspace.",
+    longDescription: "La protection la plus complète. En plus de la sécurité de vos postes, nous sauvegardons automatiquement toutes vos données Cloud : emails, documents OneDrive/Drive, calendriers, SharePoint... Une suppression accidentelle ou une attaque ? Nous restaurons tout en quelques minutes.",
+    unitType: "poste",
+    isPopular: false,
+    icon: CloudUpload,
+    color: "purple",
+    features: [
+      { text: "Tout le pack SÉRÉNITÉ inclus", included: true, detail: "Protection complète des postes" },
+      { text: "Sauvegarde Microsoft 365", included: true, detail: "Emails, OneDrive, SharePoint, Teams" },
+      { text: "Sauvegarde Google Workspace", included: true, detail: "Gmail, Drive, Agenda, Contacts" },
+      { text: "Restauration granulaire", included: true, detail: "Récupérez un fichier, un email ou tout un compte" },
+      { text: "Rétention longue durée (1 an)", included: true, detail: "Vos données conservées même après suppression" },
+      { text: "Protection contre la suppression accidentelle", included: true, detail: "Filet de sécurité permanent" },
+      { text: "Audit annuel de sécurité", included: true, detail: "Analyse complète et recommandations" },
+      { text: "Rapports de conformité", included: true, detail: "Documentation pour vos clients/partenaires" },
+      { text: "Accès console de restauration", included: true, detail: "Autonomie pour les restaurations simples" },
+      { text: "Support prioritaire 24h", included: true, detail: "Réponse garantie sous 24h" },
+    ],
+    highlights: [
+      { icon: Database, title: "Sauvegarde automatique", desc: "3 sauvegardes par jour, sans action de votre part" },
+      { icon: FileSearch, title: "Restauration rapide", desc: "Retrouvez n'importe quel fichier en quelques clics" },
+      { icon: ShieldCheck, title: "Conformité totale", desc: "RGPD, NIS2, assurances cyber - tout est couvert" },
+    ],
+    idealFor: ["Entreprises avec données Cloud critiques", "Utilisateurs Microsoft 365 / Google Workspace", "Structures réglementées"],
+  },
+];
 
-interface PricingData {
-  subscriptions: Offer[];
-  addons: Offer[];
-  oneShots: Offer[];
-  config: PricingConfig;
-}
-
-interface ConfigState {
-  users: number;
-  selectedOffer: string | null;
-  iaEnabled: boolean;
-  selectedExtras: string[];
-}
+// Écosystème technique
+const TECH_STACK = [
+  {
+    name: "Bitwarden",
+    role: "Gestion des accès",
+    description: "Le gestionnaire de mots de passe open-source leader mondial. Chiffrement de bout en bout, audit de sécurité public, et confiance de millions d'utilisateurs.",
+    icon: KeyRound,
+    color: "text-blue-500",
+  },
+  {
+    name: "SentinelOne",
+    role: "Protection endpoint",
+    description: "L'antivirus nouvelle génération. Son IA détecte les comportements suspects et neutralise les ransomwares avant qu'ils ne chiffrent vos données.",
+    icon: Bot,
+    color: "text-purple-500",
+  },
+  {
+    name: "NinjaOne",
+    role: "Pilotage & Maintenance",
+    description: "Notre agent de supervision. Il maintient vos postes à jour, nous alerte en cas de problème et nous permet d'intervenir à distance instantanément.",
+    icon: Server,
+    color: "text-teal-500",
+  },
+];
 
 // ============================================================
 // ANIMATION VARIANTS
 // ============================================================
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } 
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const stagger = {
-  visible: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
+  visible: { transition: { staggerChildren: 0.1 } },
 };
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    scale: 1,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
-  },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const slideIn = {
@@ -118,34 +194,13 @@ const slideIn = {
 };
 
 // ============================================================
-// HELPER FUNCTIONS
-// ============================================================
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
-};
-
-const formatPriceDecimal = (price: number): string => {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price);
-};
-
-// ============================================================
-// PROGRESS TIMELINE COMPONENT
+// PROGRESS TIMELINE
 // ============================================================
 const ProgressTimeline = ({ currentStep }: { currentStep: number }) => {
   const steps = [
     { num: 1, label: "Offre", icon: Shield },
     { num: 2, label: "Configuration", icon: Settings },
-    { num: 3, label: "Récapitulatif", icon: FileSearch },
+    { num: 3, label: "Contact", icon: MessageSquare },
   ];
 
   return (
@@ -158,8 +213,6 @@ const ProgressTimeline = ({ currentStep }: { currentStep: number }) => {
                 ? "bg-cyrelis-blue text-white"
                 : "bg-slate-100 text-slate-400"
             }`}
-            animate={currentStep === step.num ? { scale: [1, 1.05, 1] } : {}}
-            transition={{ duration: 0.5 }}
           >
             <step.icon className="w-4 h-4" />
             <span className="font-semibold text-sm hidden md:inline">{step.label}</span>
@@ -177,599 +230,404 @@ const ProgressTimeline = ({ currentStep }: { currentStep: number }) => {
 };
 
 // ============================================================
-// TABLEAU COMPARATIF
+// STEP 1: CHOIX DE L'OFFRE
 // ============================================================
-const ComparisonTable = ({
-  pricingData,
-}: {
-  pricingData: PricingData;
-}) => {
-  const autonomyOffer = pricingData.subscriptions.find(o => 
-    o.slug === "autonomy" || o.slug === "autonomie"
-  );
-  const partnerOffer = pricingData.subscriptions.find(o => 
-    o.slug === "partner" || o.slug === "partenaire"
-  );
-  const iaModule = pricingData.addons.find(a => a.slug?.includes("ia") || a.name?.toLowerCase().includes("ia"));
-  const config = pricingData.config;
-
-  const autonomyPriceHT = autonomyOffer?.pricePerUser || 5;
-  const autonomyPriceTTC = Math.round(autonomyPriceHT * 1.2 * 100) / 100;
-  const partnerPriceHT = partnerOffer?.pricePerUser || 10;
-  const partnerPriceTTC = Math.round(partnerPriceHT * 1.2 * 100) / 100;
-  const iaPriceHT = iaModule?.pricePerUser || 3;
-  const iaPriceTTC = Math.round(iaPriceHT * 1.2 * 100) / 100;
-
-  const CheckIcon = () => <span className="text-cyrelis-mint text-xl font-bold">✓</span>;
-  const CrossIcon = () => <span className="text-slate-300 text-xl">—</span>;
-  const AddOnIcon = () => <span className="text-cyrelis-blue text-xs font-semibold px-2 py-1 bg-cyrelis-blue/10 rounded-full">+ Option</span>;
-  const YouManage = () => <span className="text-amber-700 text-xs font-medium px-2 py-1 bg-amber-100 rounded-full">Vous gérez</span>;
-  const WeManage = () => <span className="text-cyrelis-blue text-xs font-semibold px-2 py-1 bg-cyrelis-blue/10 rounded-full">Cyrélis gère</span>;
-
-  const TableRow = ({ 
-    label, 
-    autonomieValue, 
-    partenaireValue, 
-    highlight = false 
-  }: { 
-    label: string; 
-    autonomieValue: React.ReactNode; 
-    partenaireValue: React.ReactNode; 
-    highlight?: boolean;
-  }) => (
-    <tr className={highlight ? "bg-cyrelis-mint/5" : "bg-white hover:bg-slate-50"}>
-      <td className="px-6 py-4 text-sm font-medium text-slate-900 border-b border-slate-100">{label}</td>
-      <td className="px-6 py-4 text-sm text-center border-b border-slate-100">{autonomieValue}</td>
-      <td className="px-6 py-4 text-sm text-center border-b border-slate-100 bg-cyrelis-blue/5">{partenaireValue}</td>
-    </tr>
-  );
-
-  return (
-    <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-cyrelis-blue/20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-cyrelis-blue via-cyrelis-blue to-slate-900 p-8 text-white">
-        <div className="text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">
-            📊 Comparatif Détaillé
-          </h2>
-          <p className="text-slate-300">
-            Trouvez l'offre qui correspond à vos besoins
-          </p>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-6 py-5 text-left text-sm font-bold text-slate-700 border-b-2 border-slate-200 w-1/2">
-                Caractéristiques
-              </th>
-              <th className="px-6 py-5 text-center text-sm font-bold border-b-2 border-slate-200 w-1/4">
-                <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 bg-gradient-to-br from-cyrelis-mint to-teal-500 rounded-xl flex items-center justify-center text-white text-lg mb-2">
-                    <Shield className="w-5 h-5" />
-                  </div>
-                  <span className="text-cyrelis-blue text-lg">Autonomie</span>
-                  <span className="text-xs font-normal text-slate-500 mt-1">
-                    {autonomyPriceHT}€ HT / {autonomyPriceTTC}€ TTC
-                  </span>
-                  <span className="text-xs text-slate-400">par user/mois</span>
-                </div>
-              </th>
-              <th className="px-6 py-5 text-center text-sm font-bold border-b-2 border-slate-200 bg-cyrelis-blue/5 w-1/4">
-                <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 bg-gradient-to-br from-cyrelis-blue to-slate-800 rounded-xl flex items-center justify-center text-white text-lg mb-2">
-                    <Headphones className="w-5 h-5" />
-                  </div>
-                  <span className="text-cyrelis-blue text-lg">Partenaire</span>
-                  <span className="text-xs font-normal text-slate-500 mt-1">
-                    {partnerPriceHT}€ HT / {partnerPriceTTC}€ TTC
-                  </span>
-                  <span className="text-xs text-slate-400">par user/mois</span>
-                  <span className="inline-block px-2 py-0.5 bg-cyrelis-blue text-white rounded text-xs mt-2 font-semibold">
-                    ⭐ RECOMMANDÉ
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* Infrastructure */}
-            <tr className="bg-gradient-to-r from-cyrelis-mint/10 to-teal-50">
-              <td colSpan={3} className="px-6 py-3 text-xs font-bold text-cyrelis-blue uppercase tracking-wider">
-                🏗️ Infrastructure & Maintenance
-              </td>
-            </tr>
-            <TableRow label="Hébergement cloud sécurisé (France)" autonomieValue={<CheckIcon />} partenaireValue={<CheckIcon />} />
-            <TableRow label="Maintenance technique proactive" autonomieValue={<CheckIcon />} partenaireValue={<CheckIcon />} />
-            <TableRow label="Mises à jour & Patches de sécurité" autonomieValue={<CheckIcon />} partenaireValue={<CheckIcon />} />
-            <TableRow label="Sauvegardes quotidiennes chiffrées" autonomieValue={<CheckIcon />} partenaireValue={<CheckIcon />} />
-            <TableRow label="Monitoring 24/7 avec alertes" autonomieValue={<CheckIcon />} partenaireValue={<CheckIcon />} />
-
-            {/* Administration */}
-            <tr className="bg-gradient-to-r from-amber-100 to-orange-50">
-              <td colSpan={3} className="px-6 py-3 text-xs font-bold text-amber-800 uppercase tracking-wider">
-                ⚙️ Administration & Gestion — La vraie différence
-              </td>
-            </tr>
-            <TableRow label="Gestion des utilisateurs (entrées/sorties)" autonomieValue={<YouManage />} partenaireValue={<WeManage />} highlight />
-            <TableRow label="Gestion des accès & permissions" autonomieValue={<YouManage />} partenaireValue={<WeManage />} highlight />
-            <TableRow label="Organisation des collections & groupes" autonomieValue={<YouManage />} partenaireValue={<WeManage />} highlight />
-            <TableRow label="Administration système complète" autonomieValue={<CrossIcon />} partenaireValue={<CheckIcon />} highlight />
-
-            {/* Support */}
-            <tr className="bg-gradient-to-r from-cyrelis-mint/10 to-teal-50">
-              <td colSpan={3} className="px-6 py-3 text-xs font-bold text-cyrelis-blue uppercase tracking-wider">
-                📞 Support & Accompagnement
-              </td>
-            </tr>
-            <TableRow label="Support email" autonomieValue={<span className="text-xs text-slate-600 font-medium">48h ouvrées</span>} partenaireValue={<span className="text-xs text-cyrelis-blue font-semibold">24h prioritaire</span>} />
-            <TableRow label="Assistance téléphonique" autonomieValue={<CrossIcon />} partenaireValue={<span className="text-xs text-slate-600">Sur RDV</span>} />
-            <TableRow label="Rapports mensuels d'activité" autonomieValue={<CrossIcon />} partenaireValue={<CheckIcon />} />
-            <TableRow label="Interlocuteur dédié" autonomieValue={<CrossIcon />} partenaireValue={<CheckIcon />} />
-
-            {/* Modules optionnels */}
-            <tr className="bg-gradient-to-r from-purple-100 to-indigo-50">
-              <td colSpan={3} className="px-6 py-3 text-xs font-bold text-purple-800 uppercase tracking-wider">
-                🧩 Modules Optionnels (disponibles pour tous)
-              </td>
-            </tr>
-            {iaModule && (
-              <TableRow 
-                label={`${iaModule.name} (${iaPriceHT}€ HT / ${iaPriceTTC}€ TTC par user/mois)`}
-                autonomieValue={<AddOnIcon />} 
-                partenaireValue={<AddOnIcon />} 
-              />
-            )}
-            {pricingData.oneShots.map((extra) => (
-              <TableRow 
-                key={extra.slug}
-                label={`${extra.name} (${extra.basePrice}€ HT / ${Math.round(extra.basePrice * 1.2)}€ TTC)`}
-                autonomieValue={<AddOnIcon />} 
-                partenaireValue={<AddOnIcon />} 
-              />
-            ))}
-
-            {/* Tarification */}
-            <tr className="bg-gradient-to-r from-amber-100 to-orange-50">
-              <td colSpan={3} className="px-6 py-3 text-xs font-bold text-amber-800 uppercase tracking-wider">
-                💰 Tarification
-              </td>
-            </tr>
-            <TableRow 
-              label="Pack Démarrage (obligatoire, une fois)" 
-              autonomieValue={<span className="text-xs font-medium">{config.buildBaseFee}€ HT + {config.buildPerUserFee}€/user</span>} 
-              partenaireValue={<span className="text-xs font-medium">{config.buildBaseFee}€ HT + {config.buildPerUserFee}€/user</span>} 
-            />
-            <TableRow 
-              label="Abonnement mensuel par utilisateur (HT)" 
-              autonomieValue={<span className="font-bold text-cyrelis-mint text-xl">{autonomyPriceHT}€</span>} 
-              partenaireValue={<span className="font-bold text-cyrelis-blue text-xl">{partnerPriceHT}€</span>} 
-              highlight
-            />
-            <TableRow 
-              label="Abonnement mensuel par utilisateur (TTC)" 
-              autonomieValue={<span className="font-semibold text-slate-700 text-lg">{autonomyPriceTTC}€</span>} 
-              partenaireValue={<span className="font-semibold text-slate-700 text-lg">{partnerPriceTTC}€</span>} 
-              highlight
-            />
-          </tbody>
-        </table>
-      </div>
-
-      {/* Footer légende */}
-      <div className="bg-slate-50 p-6 border-t border-slate-200">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-600">
-          <div className="flex items-center gap-2">
-            <CheckIcon />
-            <span>Inclus dans l'offre</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <AddOnIcon />
-            <span>Disponible en option</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CrossIcon />
-            <span>Non disponible</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-cyrelis-mint/20 rounded"></div>
-            <span>Sécurité identique</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ============================================================
-// ÉTAPE 1 : CHOIX DE L'OFFRE
-// ============================================================
-const Step1OfferChoice = ({
-  pricingData,
-  config,
-  onSelect,
-}: {
-  pricingData: PricingData;
-  config: ConfigState;
-  onSelect: (offer: string) => void;
-}) => {
-  const [showComparison, setShowComparison] = useState(false);
+const Step1OfferChoice = ({ onSelect }: { onSelect: (offerId: string) => void }) => {
+  const [showEcosystem, setShowEcosystem] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
-
-  const autonomyOffer = pricingData.subscriptions.find(o => 
-    o.slug === "autonomy" || o.slug === "autonomie"
-  );
-  const partnerOffer = pricingData.subscriptions.find(o => 
-    o.slug === "partner" || o.slug === "partenaire"
-  );
-
-  // Calcul HT/TTC
-  const autonomyPriceHT = autonomyOffer?.pricePerUser || 5;
-  const autonomyPriceTTC = Math.round(autonomyPriceHT * 1.2 * 100) / 100;
-  const partnerPriceHT = partnerOffer?.pricePerUser || 10;
-  const partnerPriceTTC = Math.round(partnerPriceHT * 1.2 * 100) / 100;
+  const [expandedOffer, setExpandedOffer] = useState<string | null>(null);
 
   const faqItems = [
     {
-      question: "Pourquoi un investissement initial ?",
-      answer: "Le Pack Démarrage couvre l'installation technique, la configuration de votre coffre-fort sécurisé et la formation de votre équipe. C'est une fondation solide qui ne se fait qu'une seule fois. Sans cette base, vous risquez des failles de configuration coûteuses à corriger."
+      question: "Quelle est la différence entre les offres ?",
+      answer: "ACCÈS = Bitwarden uniquement (gestion des mots de passe). SÉRÉNITÉ = ACCÈS + Antivirus IA (SentinelOne) + Maintenance proactive (NinjaOne). INTÉGRALE = SÉRÉNITÉ + Sauvegarde de vos données Cloud (Microsoft 365, Google Workspace)."
+    },
+    {
+      question: "Comment se passe la mise en place ?",
+      answer: "Nous nous occupons de tout ! Un technicien configure vos postes à distance ou sur site. La transition est transparente, vos collaborateurs n'ont rien à faire."
     },
     {
       question: "Puis-je changer d'offre plus tard ?",
-      answer: "Absolument ! Vous pouvez passer de l'offre Autonomie à Partenaire (ou inversement) à tout moment. Si vous commencez en autonome et réalisez que l'administration vous prend trop de temps, nous prenons le relais sans frais de migration."
+      answer: "Absolument ! Vous pouvez passer de ACCÈS à SÉRÉNITÉ ou INTÉGRALE à tout moment, sans frais de migration. Vos données et configurations sont préservées."
     },
     {
-      question: "La sécurité est-elle identique dans les deux offres ?",
-      answer: "Oui ! Hébergement, maintenance, sauvegardes, monitoring : tout est au même niveau. La seule différence est dans le service humain : qui gère les utilisateurs au quotidien ? Vous (Autonomie) ou nous (Partenaire)."
+      question: "Que se passe-t-il si j'ai un problème ?",
+      answer: "Pour SÉRÉNITÉ et INTÉGRALE, nous intervenons à distance en moins de 4h. Pour ACCÈS, support par email sous 48h. En cas d'urgence, ligne téléphone directe."
     },
   ];
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={slideIn}
-      className="max-w-6xl mx-auto"
-    >
+    <motion.div initial="hidden" animate="visible" exit="exit" variants={slideIn} className="max-w-6xl mx-auto">
       {/* Header */}
       <div className="text-center mb-12">
-        <motion.h1 
+        <motion.span 
           variants={fadeInUp}
-          className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mb-4"
+          className="inline-flex items-center gap-2 py-1 px-4 rounded-full bg-slate-100 border border-slate-200 text-cyrelis-blue text-xs font-bold mb-6 uppercase tracking-wider"
         >
-          Choisissez votre{" "}
-          <span className="text-cyrelis-blue">niveau d'accompagnement</span>
+          <span className="w-2 h-2 rounded-full bg-cyrelis-mint animate-pulse"></span>
+          Configurateur de devis
+        </motion.span>
+        <motion.h1 variants={fadeInUp} className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+          Choisissez votre niveau de protection
         </motion.h1>
-        <motion.p 
-          variants={fadeInUp}
-          className="text-xl text-slate-600 max-w-2xl mx-auto"
-        >
-          La sécurité technique est identique. Seul le service humain change.
+        <motion.p variants={fadeInUp} className="text-xl text-slate-600 max-w-2xl mx-auto">
+          Sélectionnez l'offre adaptée à vos besoins. Nous vous envoyons un devis personnalisé sous 24h.
         </motion.p>
       </div>
 
-      {/* Explication BUILD vs RUN */}
-      <motion.div 
-        variants={scaleIn}
-        className="bg-gradient-to-r from-cyrelis-blue via-cyrelis-blue to-slate-900 rounded-3xl p-8 text-white mb-12"
-      >
-        <div className="flex items-start gap-4 mb-6">
-          <div className="p-3 bg-white/10 rounded-2xl">
-            <HelpCircle className="w-6 h-6 text-cyrelis-mint" />
-          </div>
-          <div>
-            <h3 className="font-heading font-bold text-xl mb-2">
-              Comment ça fonctionne ?
-            </h3>
-            <p className="text-slate-300 leading-relaxed">
-              Comme un architecte qui sépare la construction d'une maison de son entretien, 
-              nous distinguons <strong className="text-white">l'installation</strong> (BUILD) 
-              du <strong className="text-white">service mensuel</strong> (RUN).
-            </p>
-          </div>
-        </div>
+      {/* Cartes des offres */}
+      <motion.div variants={stagger} className="grid md:grid-cols-3 gap-6 mb-12">
+        {OFFERS.map((offer) => {
+          const Icon = offer.icon;
+          const isExpanded = expandedOffer === offer.id;
+          
+          return (
+            <motion.div
+              key={offer.id}
+              variants={scaleIn}
+              className={`relative bg-white rounded-2xl border transition-all duration-300 ${
+                offer.isPopular 
+                  ? "border-cyrelis-blue shadow-lg shadow-cyrelis-blue/10" 
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              {offer.isPopular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyrelis-blue text-white text-xs font-bold px-4 py-1 rounded-full">
+                  LE PLUS POPULAIRE
+                </div>
+              )}
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-cyrelis-mint/20 rounded-xl">
-                <Wrench className="w-5 h-5 text-cyrelis-mint" />
-              </div>
-              <div>
-                <h4 className="font-bold text-white">BUILD — Une seule fois</h4>
-                <p className="text-xs text-slate-400">Investissement initial</p>
-              </div>
-            </div>
-            <ul className="space-y-2 text-sm text-slate-300">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
-                Audit de vos pratiques actuelles
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
-                Installation du coffre-fort Bitwarden
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
-                Formation de votre équipe
-              </li>
-            </ul>
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <div className="text-lg font-bold text-white">
-                {pricingData.config.buildBaseFee}€ HT
-                <span className="text-slate-400 text-sm font-normal ml-1">
-                  ({Math.round(pricingData.config.buildBaseFee * 1.2)}€ TTC)
-                </span>
-              </div>
-              <div className="text-slate-400 text-sm">+ {pricingData.config.buildPerUserFee}€ HT/user</div>
-            </div>
-          </div>
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`p-3 rounded-xl ${
+                    offer.color === "teal" ? "bg-teal-100" :
+                    offer.color === "blue" ? "bg-blue-100" : "bg-purple-100"
+                  }`}>
+                    <Icon className={`w-6 h-6 ${
+                      offer.color === "teal" ? "text-teal-600" :
+                      offer.color === "blue" ? "text-blue-600" : "text-purple-600"
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-xl text-slate-900">{offer.name}</h3>
+                    <p className="text-sm text-slate-500">{offer.tagline}</p>
+                  </div>
+                </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-cyrelis-mint/20 rounded-xl">
-                <RefreshCcw className="w-5 h-5 text-cyrelis-mint" />
+                {/* Description */}
+                <p className="text-sm text-slate-600 mb-4 leading-relaxed">{offer.description}</p>
+
+                {/* Highlights */}
+                <div className="space-y-2 mb-4">
+                  {offer.highlights.map((h, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <h.icon className="w-4 h-4 text-cyrelis-mint mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="text-sm font-medium text-slate-800">{h.title}</span>
+                        <span className="text-sm text-slate-500"> – {h.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Expand/Collapse features */}
+                <button
+                  onClick={() => setExpandedOffer(isExpanded ? null : offer.id)}
+                  className="w-full flex items-center justify-center gap-2 py-2 text-sm text-slate-500 hover:text-slate-700 transition"
+                >
+                  {isExpanded ? "Voir moins" : "Voir toutes les fonctionnalités"}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-4 border-t border-slate-100 mt-2 space-y-2">
+                        {offer.features.map((feature, i) => (
+                          <div key={i} className={`flex items-start gap-2 ${feature.included ? "text-slate-700" : "text-slate-300"}`}>
+                            {feature.included ? (
+                              <CheckCircle2 className="w-4 h-4 text-cyrelis-mint mt-0.5 flex-shrink-0" />
+                            ) : (
+                              <X className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            )}
+                            <div>
+                              <span className="text-sm">{feature.text}</span>
+                              {feature.detail && feature.included && (
+                                <p className="text-xs text-slate-400">{feature.detail}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-slate-100">
+                        <p className="text-xs font-semibold text-slate-500 mb-2">IDÉAL POUR :</p>
+                        <div className="flex flex-wrap gap-1">
+                          {offer.idealFor.map((item, i) => (
+                            <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* CTA */}
+                <Button
+                  onClick={() => onSelect(offer.id)}
+                  className={`w-full h-12 rounded-xl font-semibold text-sm mt-4 transition-all ${
+                    offer.isPopular
+                      ? "bg-cyrelis-blue text-white hover:bg-cyrelis-blue/90"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  Configurer mon devis
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
               </div>
-              <div>
-                <h4 className="font-bold text-white">RUN — Chaque mois</h4>
-                <p className="text-xs text-slate-400">Abonnement récurrent</p>
-              </div>
-            </div>
-            <ul className="space-y-2 text-sm text-slate-300">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
-                Mises à jour de sécurité
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
-                Support et accompagnement
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
-                Surveillance continue
-              </li>
-            </ul>
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <div className="text-lg font-bold text-white">
-                À partir de {autonomyPriceHT}€ HT
-                <span className="text-slate-400 text-sm font-normal ml-1">
-                  ({autonomyPriceTTC}€ TTC)
-                </span>
-              </div>
-              <div className="text-slate-400 text-sm">/user/mois</div>
-            </div>
-          </div>
+            </motion.div>
+          );
+        })}
+      </motion.div>
+
+      {/* Tableau comparatif complet */}
+      <motion.div variants={fadeInUp} className="mb-12">
+        <h2 className="text-2xl font-bold text-slate-900 text-center mb-6">Comparatif détaillé</h2>
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <table className="w-full min-w-[800px]">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left p-4 bg-slate-50 font-semibold text-slate-600 w-[300px]">Fonctionnalités</th>
+                {OFFERS.map((offer) => (
+                  <th key={offer.id} className={`p-4 text-center ${offer.isPopular ? "bg-cyrelis-blue text-white" : "bg-slate-50"}`}>
+                    <div className="font-bold text-lg">{offer.name}</div>
+                    <div className={`text-xs ${offer.isPopular ? "text-blue-100" : "text-slate-400"}`}>
+                      par {offer.unitType}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {/* Gestion des mots de passe */}
+              <tr className="bg-slate-50/50">
+                <td colSpan={4} className="px-4 py-3 font-bold text-slate-800">
+                  <div className="flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-cyrelis-blue" />
+                    Gestion des mots de passe
+                  </div>
+                </td>
+              </tr>
+              {[
+                { label: "Bitwarden Enterprise", acces: true, serenite: true, integrale: true },
+                { label: "Coffre-fort personnel illimité", acces: true, serenite: true, integrale: true },
+                { label: "Partage sécurisé en équipe", acces: true, serenite: true, integrale: true },
+                { label: "Chiffrement AES-256 Zero-Knowledge", acces: true, serenite: true, integrale: true },
+                { label: "2FA obligatoire", acces: true, serenite: true, integrale: true },
+                { label: "Apps mobile & extensions navigateur", acces: true, serenite: true, integrale: true },
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-slate-100">
+                  <td className="px-4 py-2.5 text-sm text-slate-700">{row.label}</td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.acces ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                  <td className="px-4 py-2.5 text-center bg-cyrelis-blue/5">
+                    {row.serenite ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.integrale ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                </tr>
+              ))}
+
+              {/* Protection des postes */}
+              <tr className="bg-slate-50/50">
+                <td colSpan={4} className="px-4 py-3 font-bold text-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Monitor className="w-4 h-4 text-purple-600" />
+                    Protection des postes de travail
+                  </div>
+                </td>
+              </tr>
+              {[
+                { label: "Antivirus IA (SentinelOne)", acces: false, serenite: true, integrale: true },
+                { label: "Protection ransomware temps réel", acces: false, serenite: true, integrale: true },
+                { label: "Rollback automatique (annulation d'attaque)", acces: false, serenite: true, integrale: true },
+                { label: "Mises à jour Windows/Mac automatiques", acces: false, serenite: true, integrale: true },
+                { label: "Surveillance 24/7 de la santé système", acces: false, serenite: true, integrale: true },
+                { label: "Intervention à distance", acces: false, serenite: true, integrale: true },
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-slate-100">
+                  <td className="px-4 py-2.5 text-sm text-slate-700">{row.label}</td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.acces ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                  <td className="px-4 py-2.5 text-center bg-cyrelis-blue/5">
+                    {row.serenite ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.integrale ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                </tr>
+              ))}
+
+              {/* Sauvegarde Cloud */}
+              <tr className="bg-slate-50/50">
+                <td colSpan={4} className="px-4 py-3 font-bold text-slate-800">
+                  <div className="flex items-center gap-2">
+                    <CloudUpload className="w-4 h-4 text-indigo-600" />
+                    Sauvegarde données Cloud
+                  </div>
+                </td>
+              </tr>
+              {[
+                { label: "Sauvegarde Microsoft 365 (emails, OneDrive, SharePoint)", acces: false, serenite: false, integrale: true },
+                { label: "Sauvegarde Google Workspace (Gmail, Drive)", acces: false, serenite: false, integrale: true },
+                { label: "Restauration granulaire (fichier par fichier)", acces: false, serenite: false, integrale: true },
+                { label: "Rétention 1 an", acces: false, serenite: false, integrale: true },
+                { label: "3 sauvegardes automatiques par jour", acces: false, serenite: false, integrale: true },
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-slate-100">
+                  <td className="px-4 py-2.5 text-sm text-slate-700">{row.label}</td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.acces ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                  <td className="px-4 py-2.5 text-center bg-cyrelis-blue/5">
+                    {row.serenite ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.integrale ? <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" /> : <X className="w-5 h-5 text-slate-300 mx-auto" />}
+                  </td>
+                </tr>
+              ))}
+
+              {/* Support */}
+              <tr className="bg-slate-50/50">
+                <td colSpan={4} className="px-4 py-3 font-bold text-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Headphones className="w-4 h-4 text-rose-600" />
+                    Support & accompagnement
+                  </div>
+                </td>
+              </tr>
+              {[
+                { label: "Support email", acces: "48h", serenite: "24h", integrale: "24h" },
+                { label: "Support téléphone prioritaire", acces: false, serenite: true, integrale: true },
+                { label: "Interlocuteur dédié", acces: false, serenite: true, integrale: true },
+                { label: "Rapports mensuels", acces: false, serenite: true, integrale: true },
+                { label: "Audit annuel de sécurité", acces: false, serenite: false, integrale: true },
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-slate-100">
+                  <td className="px-4 py-2.5 text-sm text-slate-700">{row.label}</td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.acces === true ? (
+                      <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" />
+                    ) : row.acces === false ? (
+                      <X className="w-5 h-5 text-slate-300 mx-auto" />
+                    ) : (
+                      <span className="text-xs font-medium text-slate-600">{row.acces}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-center bg-cyrelis-blue/5">
+                    {row.serenite === true ? (
+                      <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" />
+                    ) : row.serenite === false ? (
+                      <X className="w-5 h-5 text-slate-300 mx-auto" />
+                    ) : (
+                      <span className="text-xs font-medium text-cyrelis-blue">{row.serenite}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {row.integrale === true ? (
+                      <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mx-auto" />
+                    ) : row.integrale === false ? (
+                      <X className="w-5 h-5 text-slate-300 mx-auto" />
+                    ) : (
+                      <span className="text-xs font-medium text-purple-600">{row.integrale}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </motion.div>
 
-      {/* Cartes des offres */}
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-        {/* Offre Autonomie */}
-        <motion.div
-          variants={scaleIn}
-          whileHover={{ y: -5 }}
-          className="bg-white rounded-3xl border-2 border-slate-200 p-8 hover:border-cyrelis-mint/50 hover:shadow-xl transition-all duration-300"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-cyrelis-mint/10 rounded-2xl">
-                <Shield className="w-6 h-6 text-cyrelis-mint" strokeWidth={1.5} />
-              </div>
-              <div>
-                <h3 className="font-heading font-bold text-2xl text-slate-900">
-                  {autonomyOffer?.name || "Autonomie"}
-                </h3>
-                <p className="text-sm text-slate-500">Vous gérez, nous maintenons</p>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-slate-600 mb-6">
-            {autonomyOffer?.description || "Idéal pour les équipes autonomes avec un référent IT. Vous gardez le contrôle de la gestion quotidienne."}
-          </p>
-
-          <div className="mb-6 p-4 bg-slate-50 rounded-xl">
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-slate-900">{autonomyPriceHT}€</span>
-              <span className="text-sm text-slate-500">HT/user/mois</span>
-            </div>
-            <div className="text-sm text-slate-600 mt-1">
-              Soit <strong>{autonomyPriceTTC}€ TTC</strong>/user/mois
-            </div>
-          </div>
-
-          <div className="space-y-3 mb-8">
-            <h4 className="font-semibold text-sm text-slate-700 uppercase tracking-wider">Ce que vous faites :</h4>
-            <ul className="space-y-2">
-              {["Gestion des utilisateurs", "Configuration des accès", "Support interne niveau 1"].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                  <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
-                    <span className="text-amber-600 text-xs">!</span>
-                  </div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <Button
-            onClick={() => onSelect(autonomyOffer?.slug || "autonomy")}
-            className="w-full h-14 bg-slate-100 text-slate-900 font-semibold hover:bg-slate-200 rounded-xl text-lg"
-          >
-            Choisir Autonomie
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-        </motion.div>
-
-        {/* Offre Partenaire */}
-        <motion.div
-          variants={scaleIn}
-          whileHover={{ y: -5 }}
-          className="relative bg-gradient-to-b from-white to-cyrelis-blue/5 rounded-3xl border-2 border-cyrelis-blue p-8 shadow-lg shadow-cyrelis-blue/10 hover:shadow-xl transition-all duration-300"
-        >
-          <motion.div 
-            className="absolute -top-4 right-6 px-4 py-1.5 bg-cyrelis-blue text-white text-sm font-bold rounded-full"
-            animate={{ y: [0, -3, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            ✨ Recommandé
-          </motion.div>
-
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-cyrelis-blue/10 rounded-2xl">
-                <Headphones className="w-6 h-6 text-cyrelis-blue" strokeWidth={1.5} />
-              </div>
-              <div>
-                <h3 className="font-heading font-bold text-2xl text-slate-900">
-                  {partnerOffer?.name || "Partenaire"}
-                </h3>
-                <p className="text-sm text-slate-500">Nous gérons, vous êtes sereins</p>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-slate-600 mb-6">
-            {partnerOffer?.description || "Délégation complète de l'administration. Idéal pour les entreprises sans équipe IT dédiée."}
-          </p>
-
-          <div className="mb-6 p-4 bg-cyrelis-blue/5 rounded-xl border border-cyrelis-blue/20">
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-cyrelis-blue">{partnerPriceHT}€</span>
-              <span className="text-sm text-slate-500">HT/user/mois</span>
-            </div>
-            <div className="text-sm text-slate-600 mt-1">
-              Soit <strong>{partnerPriceTTC}€ TTC</strong>/user/mois
-            </div>
-          </div>
-
-          <div className="space-y-3 mb-8">
-            <h4 className="font-semibold text-sm text-slate-700 uppercase tracking-wider">Ce que nous faisons pour vous :</h4>
-            <ul className="space-y-2">
-              {["Gestion complète des utilisateurs", "Configuration et maintenance", "Support prioritaire (24h)"].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                  <CheckCircle2 className="w-5 h-5 text-cyrelis-mint flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <Button
-            onClick={() => onSelect(partnerOffer?.slug || "partner")}
-            className="w-full h-14 bg-cyrelis-blue text-white font-semibold hover:bg-slate-800 rounded-xl text-lg shadow-lg shadow-cyrelis-blue/20"
-          >
-            Choisir Partenaire
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-        </motion.div>
-      </div>
-
-      {/* Bouton Comparatif */}
+      {/* Bouton Écosystème */}
       <motion.div variants={fadeInUp} className="mb-8">
         <button
-          onClick={() => setShowComparison(!showComparison)}
-          className={`w-full relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-[1.01] ${
-            showComparison ? "bg-cyrelis-blue" : "bg-gradient-to-r from-cyrelis-blue to-slate-800"
-          }`}
+          onClick={() => setShowEcosystem(!showEcosystem)}
+          className="w-full bg-slate-900 rounded-2xl p-6 text-left hover:bg-slate-800 transition-all"
         >
-          <div className="relative z-10 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-                  <span className="text-4xl">📊</span>
-                </div>
-                <div className="text-white text-center md:text-left">
-                  <h3 className="text-xl md:text-2xl font-bold">
-                    {showComparison ? 'Comparatif affiché' : 'Besoin de comparer ?'}
-                  </h3>
-                  <p className="text-white/80 text-sm">
-                    {showComparison 
-                      ? 'Cliquez pour masquer le tableau' 
-                      : 'Voir le tableau comparatif Autonomie vs Partenaire'}
-                  </p>
-                </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                <Zap className="w-6 h-6 text-cyrelis-mint" />
               </div>
-              
-              <div className={`flex items-center gap-3 px-6 py-3 rounded-xl font-bold transition-all ${
-                showComparison ? "bg-white/20 text-white" : "bg-white text-cyrelis-blue"
-              }`}>
-                <span>{showComparison ? 'Masquer' : 'Voir le comparatif'}</span>
-                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${showComparison ? 'rotate-180' : ''}`} />
+              <div className="text-white">
+                <h3 className="text-lg font-bold">Nos outils partenaires</h3>
+                <p className="text-slate-400 text-sm">Bitwarden, SentinelOne, NinjaOne – Les leaders du marché</p>
               </div>
             </div>
-
-            {/* Mini aperçu */}
-            {!showComparison && (
-              <div className="mt-6 pt-6 border-t border-white/20 grid grid-cols-2 md:grid-cols-4 gap-4 text-white text-center">
-                <div>
-                  <div className="text-2xl font-bold">🟢 vs 🔷</div>
-                  <div className="text-xs text-white/70">2 offres</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">15+</div>
-                  <div className="text-xs text-white/70">Critères</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">{autonomyPriceHT}€ / {partnerPriceHT}€</div>
-                  <div className="text-xs text-white/70">HT/user/mois</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">🔐</div>
-                  <div className="text-xs text-white/70">Même sécurité</div>
-                </div>
-              </div>
-            )}
+            <ChevronDown className={`w-5 h-5 text-white transition-transform ${showEcosystem ? "rotate-180" : ""}`} />
           </div>
         </button>
       </motion.div>
 
-      {/* Tableau Comparatif */}
       <AnimatePresence>
-        {showComparison && (
+        {showEcosystem && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.4 }}
             className="overflow-hidden mb-12"
           >
-            <ComparisonTable pricingData={pricingData} />
+            <div className="bg-slate-800 rounded-2xl p-8 text-white">
+              <div className="grid md:grid-cols-3 gap-6">
+                {TECH_STACK.map((tech, i) => (
+                  <div key={i} className="bg-white/10 p-6 rounded-xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center ${tech.color}`}>
+                        <tech.icon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-lg">{tech.name}</h4>
+                        <p className="text-xs text-slate-400">{tech.role}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed">{tech.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* FAQ Accordéon */}
-      <motion.div variants={fadeInUp} className="bg-slate-50 rounded-3xl p-8">
-        <button
-          onClick={() => setShowFAQ(!showFAQ)}
-          className="w-full flex items-center justify-between"
-        >
+      {/* FAQ */}
+      <motion.div variants={fadeInUp} className="bg-slate-50 rounded-2xl p-6">
+        <button onClick={() => setShowFAQ(!showFAQ)} className="w-full flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <HelpCircle className="w-6 h-6 text-cyrelis-blue" />
-            <h3 className="font-heading font-bold text-xl text-slate-900">Questions fréquentes</h3>
+            <HelpCircle className="w-5 h-5 text-cyrelis-blue" />
+            <h3 className="font-bold text-lg text-slate-900">Questions fréquentes</h3>
           </div>
-          {showFAQ ? (
-            <ChevronUp className="w-6 h-6 text-slate-500" />
-          ) : (
-            <ChevronDown className="w-6 h-6 text-slate-500" />
-          )}
+          {showFAQ ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
         </button>
 
         <AnimatePresence>
           {showFAQ && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
               <div className="space-y-4 mt-6">
                 {faqItems.map((item, i) => (
-                  <div key={i} className="bg-white rounded-xl p-5 border border-slate-200">
+                  <div key={i} className="bg-white rounded-xl p-4 border border-slate-200">
                     <h4 className="font-semibold text-slate-900 mb-2">{item.question}</h4>
                     <p className="text-sm text-slate-600 leading-relaxed">{item.answer}</p>
                   </div>
@@ -784,943 +642,396 @@ const Step1OfferChoice = ({
 };
 
 // ============================================================
-// ÉTAPE 2 : CONFIGURATION
+// STEP 2: CONFIGURATION
 // ============================================================
 const Step2Configuration = ({
-  pricingData,
-  config,
-  setConfig,
+  selectedOfferId,
+  users,
+  setUsers,
   onNext,
   onBack,
 }: {
-  pricingData: PricingData;
-  config: ConfigState;
-  setConfig: (config: ConfigState) => void;
+  selectedOfferId: string;
+  users: number;
+  setUsers: (n: number) => void;
   onNext: () => void;
   onBack: () => void;
 }) => {
-  const selectedOffer = pricingData.subscriptions.find(s => s.slug === config.selectedOffer);
-  const iaModule = pricingData.addons.find(a => a.slug?.includes("ia") || a.name?.toLowerCase().includes("ia"));
-  
-  const isAutonomie = config.selectedOffer === "autonomy" || config.selectedOffer === "autonomie";
-
-  // Tous les modules sont accessibles pour toutes les offres
-  const toggleExtra = (slug: string) => {
-    setConfig({
-      ...config,
-      selectedExtras: config.selectedExtras.includes(slug)
-        ? config.selectedExtras.filter(id => id !== slug)
-        : [...config.selectedExtras, slug]
-    });
-  };
-
-  const totalSelections = (config.iaEnabled ? 1 : 0) + config.selectedExtras.length;
-
-  // Prix HT/TTC
-  const buildBaseHT = pricingData.config.buildBaseFee;
-  const buildBaseTTC = Math.round(buildBaseHT * 1.2);
-  const buildPerUserHT = pricingData.config.buildPerUserFee;
-  const buildPerUserTTC = Math.round(buildPerUserHT * 1.2 * 100) / 100;
-  const iaPriceHT = iaModule?.pricePerUser || 3;
-  const iaPriceTTC = Math.round(iaPriceHT * 1.2 * 100) / 100;
+  const offer = OFFERS.find(o => o.id === selectedOfferId)!;
+  const Icon = offer.icon;
+  const unitPlural = offer.unitType === "utilisateur" ? "utilisateurs" : "postes";
+  const unitSingular = offer.unitType;
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={slideIn}
-      className="max-w-4xl mx-auto"
-    >
-      {/* Header */}
-      <div className="text-center mb-12">
-        <motion.div 
-          variants={fadeInUp}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mb-4 ${
-            isAutonomie ? "bg-cyrelis-mint/20 text-cyrelis-blue" : "bg-cyrelis-blue/10 text-cyrelis-blue"
-          }`}
-        >
-          <Shield className="w-4 h-4" />
-          Offre {selectedOffer?.name || "sélectionnée"}
+    <motion.div initial="hidden" animate="visible" exit="exit" variants={slideIn} className="max-w-2xl mx-auto">
+      <div className="text-center mb-10">
+        <motion.div variants={fadeInUp} className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mb-4 ${
+          offer.color === "teal" ? "bg-teal-100 text-teal-700" :
+          offer.color === "blue" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
+        }`}>
+          <Icon className="w-4 h-4" />
+          Offre {offer.name}
         </motion.div>
-        <motion.h1 
-          variants={fadeInUp}
-          className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mb-4"
-        >
-          Configurez votre protection
+        <motion.h1 variants={fadeInUp} className="font-heading text-4xl font-bold text-slate-900 mb-4">
+          Combien de {unitPlural} à protéger ?
         </motion.h1>
-        <motion.p 
-          variants={fadeInUp}
-          className="text-xl text-slate-600"
-        >
-          Sélectionnez vos options, le récapitulatif complet vous attend à l'étape suivante
+        <motion.p variants={fadeInUp} className="text-lg text-slate-600 max-w-md mx-auto">
+          {offer.unitType === "utilisateur" 
+            ? "Comptez chaque collaborateur qui aura besoin d'un accès au gestionnaire de mots de passe."
+            : "Comptez chaque ordinateur (PC ou Mac) à équiper et protéger."}
         </motion.p>
       </div>
 
-      <div className="space-y-8">
-        {/* Section 1 : Utilisateurs */}
-        <motion.div
-          variants={scaleIn}
-          className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm"
-        >
-          <div className="flex items-center gap-4 mb-8">
-            <div className={`p-3 rounded-2xl ${isAutonomie ? "bg-cyrelis-mint/20" : "bg-cyrelis-blue/10"}`}>
-              <Users className="w-6 h-6 text-cyrelis-blue" strokeWidth={1.5} />
-            </div>
-            <div>
-              <h2 className="font-heading font-bold text-xl text-slate-900">
-                Combien d'utilisateurs ?
-              </h2>
-              <p className="text-slate-500">Chaque collaborateur ayant besoin d'accéder aux mots de passe</p>
-            </div>
-          </div>
-
-          {/* Contrôles utilisateurs */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setConfig({ ...config, users: Math.max(1, config.users - 10) })}
-                className="w-12 h-12 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-600 transition"
-              >
-                -10
-              </button>
-              <button
-                onClick={() => setConfig({ ...config, users: Math.max(1, config.users - 1) })}
-                className="w-12 h-12 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-600 transition"
-              >
-                -
-              </button>
-            </div>
-
-            <motion.div 
-              className="text-center px-8"
-              key={config.users}
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-            >
-              <div className={`text-7xl font-bold ${isAutonomie ? "text-cyrelis-mint" : "text-cyrelis-blue"}`}>
-                {config.users}
-              </div>
-              <div className="text-sm text-slate-500 mt-1">utilisateurs</div>
-            </motion.div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setConfig({ ...config, users: Math.min(500, config.users + 1) })}
-                className="w-12 h-12 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-600 transition"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setConfig({ ...config, users: Math.min(500, config.users + 10) })}
-                className="w-12 h-12 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-600 transition"
-              >
-                +10
-              </button>
-            </div>
-          </div>
-
-          {/* Slider */}
-          <div className="px-4 mb-6">
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={Math.min(config.users, 100)}
-              onChange={(e) => setConfig({ ...config, users: parseInt(e.target.value) })}
-              className="w-full h-3 bg-slate-200 rounded-full appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, ${isAutonomie ? '#2dd4bf' : '#0f172a'} 0%, ${isAutonomie ? '#2dd4bf' : '#0f172a'} ${config.users}%, #e2e8f0 ${config.users}%, #e2e8f0 100%)`
-              }}
-            />
-            <div className="flex justify-between text-xs text-slate-400 mt-2">
-              <span>1</span>
-              <span>25</span>
-              <span>50</span>
-              <span>75</span>
-              <span>100+</span>
-            </div>
-          </div>
-
-          {/* Recommandation */}
-          <div className={`p-4 rounded-xl border ${isAutonomie ? "bg-cyrelis-mint/5 border-cyrelis-mint/20" : "bg-cyrelis-blue/5 border-cyrelis-blue/20"}`}>
-            <p className="text-sm text-slate-700">
-              {config.users < 10 && (
-                <>💡 <strong>Petite équipe :</strong> L'offre {selectedOffer?.name} est parfaite pour démarrer.</>
-              )}
-              {config.users >= 10 && config.users < 50 && (
-                <>💡 <strong>PME :</strong> Pensez à inclure tous les collaborateurs, même les occasionnels.</>
-              )}
-              {config.users >= 50 && (
-                <>💡 <strong>Organisation importante :</strong> Nous vous recommandons un échange personnalisé.</>
-              )}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Section 2 : Pack Démarrage (inclus) */}
-        <motion.div
-          variants={scaleIn}
-          className="bg-gradient-to-br from-cyrelis-blue to-slate-900 rounded-3xl p-8 text-white"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-white/10 rounded-2xl">
-              <Building2 className="w-6 h-6 text-cyrelis-mint" strokeWidth={1.5} />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h2 className="font-heading font-bold text-xl">Pack Démarrage</h2>
-                <span className="px-2 py-0.5 bg-cyrelis-mint text-cyrelis-blue text-xs font-bold rounded">INCLUS</span>
-              </div>
-              <p className="text-slate-400 text-sm">Installation et configuration initiale</p>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-bold">{buildBaseHT}€ HT <span className="text-slate-400 font-normal text-sm">({buildBaseTTC}€ TTC)</span></div>
-              <div className="text-xs text-slate-400">+ {buildPerUserHT}€ HT/user ({buildPerUserTTC}€ TTC)</div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            {["Installation Bitwarden", "Architecture collections", "Configuration sécurité", "Onboarding équipe"].map((feature, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
-                {feature}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Section 3 : Module IA (optionnel) */}
-        {iaModule && (
-          <motion.div
-            variants={scaleIn}
-            onClick={() => setConfig({ ...config, iaEnabled: !config.iaEnabled })}
-            className={`rounded-3xl p-8 cursor-pointer transition-all border-2 ${
-              config.iaEnabled
-                ? "bg-gradient-to-br from-purple-600 to-indigo-700 text-white border-purple-400 shadow-xl shadow-purple-500/20"
-                : "bg-white border-slate-200 hover:border-purple-300 hover:shadow-lg"
-            }`}
+      <motion.div variants={scaleIn} className="bg-white rounded-2xl border border-slate-200 p-8 mb-8 shadow-sm">
+        {/* Compteur */}
+        <div className="flex items-center justify-center gap-6 mb-8">
+          <button
+            onClick={() => setUsers(Math.max(1, users - 1))}
+            className="w-14 h-14 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-600 transition text-2xl"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-4">
-                <div className={`p-4 rounded-2xl ${config.iaEnabled ? "bg-white/20" : "bg-purple-100"}`}>
-                  <Cpu className={`w-7 h-7 ${config.iaEnabled ? "text-white" : "text-purple-600"}`} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className={`font-heading font-bold text-xl ${config.iaEnabled ? "text-white" : "text-slate-900"}`}>
-                      {iaModule.name}
-                    </h2>
-                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                      config.iaEnabled ? "bg-white/20 text-white" : "bg-purple-100 text-purple-700"
-                    }`}>
-                      OPTIONNEL
-                    </span>
-                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                      config.iaEnabled ? "bg-purple-300/30 text-purple-100" : "bg-slate-100 text-slate-600"
-                    }`}>
-                      {iaPriceHT}€ HT / {iaPriceTTC}€ TTC par user/mois
-                    </span>
-                  </div>
-                  <p className={`text-sm mt-1 ${config.iaEnabled ? "text-purple-100" : "text-slate-500"}`}>
-                    {iaModule.shortDesc || "Assistant IA pour la cybersécurité"}
-                  </p>
-
-                  {config.iaEnabled && iaModule.features && (
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      {iaModule.features.slice(0, 4).map((feature, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm text-purple-100">
-                          <CheckCircle2 className="w-4 h-4 text-purple-300" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Toggle */}
-              <div className={`w-14 h-8 rounded-full transition-colors flex items-center px-1 flex-shrink-0 ${
-                config.iaEnabled ? "bg-white/30" : "bg-slate-200"
-              }`}>
-                <motion.div
-                  className={`w-6 h-6 rounded-full shadow-md ${config.iaEnabled ? "bg-white" : "bg-slate-400"}`}
-                  animate={{ x: config.iaEnabled ? 24 : 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Section 4 : Options sécurité - Accessibles pour TOUTES les offres */}
-        {pricingData.oneShots.length > 0 && (
-          <motion.div
-            variants={scaleIn}
-            className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm"
+            -
+          </button>
+          <div className="text-center">
+            <div className="text-7xl font-bold text-slate-900">{users}</div>
+            <div className="text-sm text-slate-500 mt-1">{users === 1 ? unitSingular : unitPlural}</div>
+          </div>
+          <button
+            onClick={() => setUsers(Math.min(100, users + 1))}
+            className="w-14 h-14 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-600 transition text-2xl"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-slate-100 rounded-2xl">
-                <Lock className="w-6 h-6 text-slate-700" strokeWidth={1.5} />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="font-heading font-bold text-xl text-slate-900">Options Sécurité Avancée</h2>
-                  <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-bold">OPTIONNEL</span>
-                </div>
-                <p className="text-slate-500 text-sm">Disponibles pour toutes les offres • Payables une seule fois</p>
-              </div>
-              {config.selectedExtras.length > 0 && (
-                <span className="px-3 py-1 bg-slate-800 text-white rounded-full text-sm font-bold">
-                  {config.selectedExtras.length} sélectionné{config.selectedExtras.length > 1 ? "s" : ""}
-                </span>
-              )}
-            </div>
+            +
+          </button>
+        </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              {pricingData.oneShots.map((extra) => {
-                const isSelected = config.selectedExtras.includes(extra.slug);
-                const extraPriceHT = extra.basePrice;
-                const extraPriceTTC = Math.round(extraPriceHT * 1.2);
+        {/* Slider */}
+        <div className="px-2 mb-6">
+          <input
+            type="range"
+            min="1"
+            max="50"
+            value={Math.min(users, 50)}
+            onChange={(e) => setUsers(parseInt(e.target.value))}
+            className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, #2dd4bf 0%, #2dd4bf ${(Math.min(users, 50) / 50) * 100}%, #e2e8f0 ${(Math.min(users, 50) / 50) * 100}%, #e2e8f0 100%)`
+            }}
+          />
+          <div className="flex justify-between text-xs text-slate-400 mt-2">
+            <span>1</span>
+            <span>10</span>
+            <span>25</span>
+            <span>50+</span>
+          </div>
+        </div>
 
-                return (
-                  <div
-                    key={extra.slug}
-                    onClick={() => toggleExtra(extra.slug)}
-                    className={`p-5 rounded-xl border-2 transition-all cursor-pointer ${
-                      isSelected
-                        ? "border-slate-800 bg-slate-50 shadow-lg"
-                        : "border-slate-200 hover:border-slate-400 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        isSelected ? "bg-slate-800 text-white" : "bg-slate-100"
-                      }`}>
-                        <Lock className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <h4 className={`font-bold ${isSelected ? "text-slate-800" : "text-slate-900"}`}>
-                            {extra.name}
-                          </h4>
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition ${
-                            isSelected ? "bg-slate-800 border-slate-800 text-white" : "border-slate-300"
-                          }`}>
-                            {isSelected && <CheckCircle2 className="w-4 h-4" />}
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1">{extra.shortDesc}</p>
-                        <div className="mt-2">
-                          <span className="text-sm font-semibold text-slate-700">
-                            {extraPriceHT}€ HT
-                          </span>
-                          <span className="text-xs text-slate-500 ml-1">
-                            ({extraPriceTTC}€ TTC)
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {config.selectedExtras.length === 0 && (
-              <p className="text-center text-slate-400 text-sm mt-4 py-2 bg-slate-50 rounded-lg">
-                💡 Ces modules sont optionnels — vous pouvez les ajouter plus tard
-              </p>
-            )}
-          </motion.div>
-        )}
-      </div>
-
-      {/* Footer navigation */}
-      <motion.div
-        variants={fadeInUp}
-        className="mt-10 bg-white rounded-3xl shadow-lg p-6 border border-slate-200"
-      >
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        {/* Raccourcis */}
+        <div className="flex justify-center gap-2 flex-wrap">
+          {[1, 3, 5, 10, 15, 25, 50].map(n => (
             <button
-              onClick={onBack}
-              className="flex items-center gap-2 px-6 py-3 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+              key={n}
+              onClick={() => setUsers(n)}
+              className={`px-4 py-2 text-sm rounded-lg font-medium transition ${
+                users === n ? 'bg-cyrelis-mint text-cyrelis-blue' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
             >
-              <ArrowLeft className="w-4 h-4" />
-              Retour
+              {n}
             </button>
-
-            <div className="hidden md:flex items-center gap-3 text-sm text-slate-500">
-              <span className={`px-3 py-1 rounded-full font-semibold ${
-                isAutonomie ? "bg-cyrelis-mint/20 text-cyrelis-blue" : "bg-cyrelis-blue/10 text-cyrelis-blue"
-              }`}>
-                {config.users} utilisateurs
-              </span>
-              {totalSelections > 0 && (
-                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold">
-                  +{totalSelections} option{totalSelections > 1 ? "s" : ""}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <Button
-            onClick={onNext}
-            className={`px-8 py-4 h-14 rounded-xl font-bold text-lg shadow-lg hover:scale-105 transition-all ${
-              isAutonomie 
-                ? "bg-gradient-to-r from-cyrelis-mint to-teal-500 text-white"
-                : "bg-gradient-to-r from-cyrelis-blue to-slate-800 text-white"
-            }`}
-          >
-            Voir mon estimation
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
+          ))}
         </div>
       </motion.div>
+
+      {/* Récap offre */}
+      <motion.div variants={scaleIn} className="bg-slate-900 rounded-2xl p-6 text-white mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <Icon className="w-6 h-6 text-cyrelis-mint" />
+          <h3 className="font-bold text-lg">Récapitulatif : {offer.name}</h3>
+        </div>
+        <p className="text-sm text-slate-400 mb-4">{offer.longDescription}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {offer.highlights.map((h, i) => (
+            <div key={i} className="flex items-center gap-2 text-slate-300">
+              <CheckCircle2 className="w-4 h-4 text-cyrelis-mint flex-shrink-0" />
+              <span className="text-sm">{h.title}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Navigation */}
+      <motion.div variants={fadeInUp} className="flex items-center justify-between">
+        <button onClick={onBack} className="flex items-center gap-2 px-6 py-3 text-slate-600 hover:text-slate-800 font-medium">
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </button>
+        <Button onClick={onNext} className="px-8 py-4 h-14 bg-cyrelis-blue text-white rounded-xl font-bold hover:bg-cyrelis-blue/90">
+          Obtenir mon devis
+          <ArrowRight className="ml-2 w-5 h-5" />
+        </Button>
+      </motion.div>
+
+      <style jsx>{`
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 28px;
+          height: 28px;
+          background: #2dd4bf;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 4px solid white;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+      `}</style>
     </motion.div>
   );
 };
 
 // ============================================================
-// ÉTAPE 3 : RÉCAPITULATIF
+// STEP 3: FORMULAIRE DE CONTACT
 // ============================================================
-const Step3Summary = ({
-  pricingData,
-  config,
+const Step3Contact = ({
+  selectedOfferId,
+  users,
   onBack,
   onReset,
 }: {
-  pricingData: PricingData;
-  config: ConfigState;
+  selectedOfferId: string;
+  users: number;
   onBack: () => void;
   onReset: () => void;
 }) => {
-  const selectedOffer = pricingData.subscriptions.find(s => s.slug === config.selectedOffer);
-  const iaModule = pricingData.addons.find(a => a.slug?.includes("ia") || a.name?.toLowerCase().includes("ia"));
-  
-  const isAutonomie = config.selectedOffer === "autonomy" || config.selectedOffer === "autonomie";
-  const serviceLevel = isAutonomie ? "Autonomie" : "Partenaire";
+  const offer = OFFERS.find(o => o.id === selectedOfferId)!;
+  const unitPlural = offer.unitType === "utilisateur" ? "utilisateurs" : "postes";
 
-  const TVA_RATE = 1.20;
-  const toTTC = (ht: number) => Math.round(ht * TVA_RATE * 100) / 100;
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    company: "",
+    phone: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
-  // Calculs financiers avec HT et TTC
-  const pricing = useMemo(() => {
-    const c = pricingData.config;
-    const users = config.users;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
 
-    // CAPEX (One-Shot)
-    const packBaseHT = c.buildBaseFee;
-    const packBaseTTC = toTTC(packBaseHT);
-    const packPerUserHT = c.buildPerUserFee;
-    const packPerUserTTC = toTTC(packPerUserHT);
-    const packTotalHT = packBaseHT + (users * packPerUserHT);
-    const packTotalTTC = toTTC(packTotalHT);
+    // Construire le message détaillé pour l'email
+    const detailedMessage = `
+═══════════════════════════════════════
+📋 DEMANDE DE DEVIS - CONFIGURATEUR
+═══════════════════════════════════════
 
-    let extrasHT = 0;
-    const selectedExtrasDetails: Offer[] = [];
-    config.selectedExtras.forEach(slug => {
-      const extra = pricingData.oneShots.find(e => e.slug === slug);
-      if (extra) {
-        extrasHT += extra.basePrice;
-        selectedExtrasDetails.push(extra);
-      }
-    });
-    const extrasTTC = toTTC(extrasHT);
+👤 CONTACT
+   • Nom : ${formData.name}
+   • Email : ${formData.email}
+   • Entreprise : ${formData.company || "Non renseignée"}
+   • Téléphone : ${formData.phone || "Non renseigné"}
 
-    const totalOneShotHT = packTotalHT + extrasHT;
-    const totalOneShotTTC = toTTC(totalOneShotHT);
+📦 CONFIGURATION DEMANDÉE
+   • Offre : ${offer.name}
+   • Description : ${offer.tagline}
+   • Nombre : ${users} ${unitPlural}
 
-    // OPEX (Récurrent)
-    const licenseHT = selectedOffer?.pricePerUser || 5;
-    const licenseTTC = toTTC(licenseHT);
-    const licenseTotalHT = users * licenseHT;
-    const licenseTotalTTC = toTTC(licenseTotalHT);
+✨ CE QUI EST INCLUS DANS ${offer.name} :
+${offer.features.filter(f => f.included).map(f => `   ✓ ${f.text}`).join('\n')}
 
-    const iaHT = iaModule?.pricePerUser || 3;
-    const iaTTC = toTTC(iaHT);
-    const iaTotalHT = config.iaEnabled ? users * iaHT : 0;
-    const iaTotalTTC = config.iaEnabled ? toTTC(iaTotalHT) : 0;
+💬 MESSAGE DU CLIENT :
+${formData.message || "Pas de message supplémentaire."}
 
-    const monthlyTotalHT = licenseTotalHT + iaTotalHT;
-    const monthlyTotalTTC = toTTC(monthlyTotalHT);
+═══════════════════════════════════════
+⏰ Demande envoyée le ${new Date().toLocaleDateString('fr-FR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}
+═══════════════════════════════════════
+    `.trim();
 
-    // Projections annuelles
-    const year1HT = totalOneShotHT + (monthlyTotalHT * 12);
-    const year1TTC = toTTC(year1HT);
-    const yearNHT = monthlyTotalHT * 12;
-    const yearNTTC = toTTC(yearNHT);
-    const savingsHT = year1HT - yearNHT;
-    const savingsTTC = toTTC(savingsHT);
-    const savingsPercent = Math.round((savingsHT / year1HT) * 100);
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          message: detailedMessage,
+          source: `configurateur-${offer.id}`,
+        }),
+      });
 
-    return {
-      users,
-      serviceLevel,
-      packBase: { ht: packBaseHT, ttc: packBaseTTC },
-      packPerUser: { ht: packPerUserHT, ttc: packPerUserTTC },
-      packTotal: { ht: packTotalHT, ttc: packTotalTTC },
-      extras: selectedExtrasDetails,
-      extrasTotal: { ht: extrasHT, ttc: extrasTTC },
-      totalOneShot: { ht: totalOneShotHT, ttc: totalOneShotTTC },
-      licensePerUser: { ht: licenseHT, ttc: licenseTTC },
-      licenseTotal: { ht: licenseTotalHT, ttc: licenseTotalTTC },
-      iaPerUser: { ht: iaHT, ttc: iaTTC },
-      iaTotal: { ht: iaTotalHT, ttc: iaTotalTTC },
-      iaEnabled: config.iaEnabled,
-      monthlyTotal: { ht: monthlyTotalHT, ttc: monthlyTotalTTC },
-      year1: { ht: year1HT, ttc: year1TTC },
-      yearN: { ht: yearNHT, ttc: yearNTTC },
-      savings: { ht: savingsHT, ttc: savingsTTC },
-      savingsPercent,
-    };
-  }, [pricingData, config, selectedOffer, iaModule, serviceLevel]);
-
-  // Matrice de responsabilités
-  const getResponsibilities = () => {
-    if (isAutonomie) {
-      return {
-        cyrelis: [
-          { icon: "☁️", label: "Hébergement cloud sécurisé" },
-          { icon: "💾", label: "Sauvegardes automatiques" },
-          { icon: "🔄", label: "Mises à jour de sécurité" },
-          { icon: "📊", label: "Monitoring 24/7" },
-          { icon: "📚", label: "Documentation et guides" },
-        ],
-        client: [
-          { icon: "👥", label: "Gestion des utilisateurs", critical: true },
-          { icon: "🔐", label: "Configuration des accès", critical: true },
-          { icon: "🔔", label: "Réponse aux alertes", critical: true },
-          { icon: "🆘", label: "Support interne niveau 1", critical: false },
-        ],
-      };
-    } else {
-      return {
-        cyrelis: [
-          { icon: "☁️", label: "Hébergement cloud sécurisé" },
-          { icon: "💾", label: "Sauvegardes automatiques" },
-          { icon: "🔄", label: "Mises à jour de sécurité" },
-          { icon: "📊", label: "Monitoring 24/7" },
-          { icon: "👥", label: "Gestion complète des utilisateurs" },
-          { icon: "🔐", label: "Configuration des accès" },
-          { icon: "🔔", label: "Veille et alertes sécurité" },
-          { icon: "⚡", label: "Support prioritaire (24h)" },
-          { icon: "📈", label: "Rapports mensuels" },
-        ],
-        client: [
-          { icon: "✅", label: "Validation des demandes", critical: false },
-        ],
-      };
+      if (!response.ok) throw new Error("Erreur lors de l'envoi");
+      setIsSubmitted(true);
+    } catch {
+      setError("Une erreur est survenue. Veuillez réessayer ou nous contacter à contact@cyrelis.fr");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const responsibilities = getResponsibilities();
-
-  const handleRequestQuote = () => {
-    const subject = encodeURIComponent(`Demande de devis - Offre ${serviceLevel} - ${config.users} utilisateurs`);
-    const body = encodeURIComponent(`
-Bonjour,
-
-Je souhaite obtenir un devis pour la configuration suivante :
-
-📦 OFFRE : ${serviceLevel}
-👥 UTILISATEURS : ${config.users}
-🤖 MODULE IA : ${config.iaEnabled ? "Oui" : "Non"}
-🛡️ OPTIONS : ${pricing.extras.length > 0 ? pricing.extras.map(e => e.name).join(", ") : "Aucune"}
-
-💰 ESTIMATION :
-- Investissement initial : ${formatPrice(pricing.totalOneShot.ht)} HT (${formatPrice(pricing.totalOneShot.ttc)} TTC)
-- Coût mensuel : ${formatPrice(pricing.monthlyTotal.ht)} HT/mois (${formatPrice(pricing.monthlyTotal.ttc)} TTC/mois)
-- Budget Année 1 : ${formatPrice(pricing.year1.ht)} HT (${formatPrice(pricing.year1.ttc)} TTC)
-- Budget Années suivantes : ${formatPrice(pricing.yearN.ht)} HT/an (${formatPrice(pricing.yearN.ttc)} TTC/an)
-
-Merci de me recontacter.
-
-Cordialement
-    `);
-    window.open(`mailto:contact@cyrelis.fr?subject=${subject}&body=${body}`, "_blank");
-  };
+  if (isSubmitted) {
+    return (
+      <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="max-w-xl mx-auto text-center">
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 shadow-sm">
+          <div className="w-20 h-20 bg-cyrelis-mint/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-10 h-10 text-cyrelis-mint" />
+          </div>
+          <h2 className="font-heading text-3xl font-bold text-slate-900 mb-4">Demande envoyée !</h2>
+          <p className="text-slate-600 mb-6">
+            Merci <strong>{formData.name}</strong> !<br />
+            Nous avons bien reçu votre demande de devis pour :
+          </p>
+          <div className="bg-slate-50 rounded-xl p-4 mb-6 text-left">
+            <div className="flex items-center gap-3 mb-2">
+              <offer.icon className="w-5 h-5 text-cyrelis-blue" />
+              <span className="font-bold text-slate-900">Offre {offer.name}</span>
+            </div>
+            <p className="text-sm text-slate-600 ml-8">
+              {users} {unitPlural} à protéger
+            </p>
+          </div>
+          <p className="text-slate-500 text-sm mb-8">
+            Notre équipe vous recontacte sous <strong>24 heures</strong> avec un devis personnalisé.
+          </p>
+          <Button onClick={onReset} className="bg-slate-900 text-white hover:bg-slate-800">
+            Nouvelle demande
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={slideIn}
-      className="max-w-5xl mx-auto"
-    >
-      {/* Header */}
-      <div className="text-center mb-10">
-        <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 bg-cyrelis-mint/20 text-cyrelis-blue rounded-full text-sm font-semibold mb-4">
-          <CheckCircle2 className="w-4 h-4" />
-          Proposition personnalisée
-        </motion.div>
-        <motion.h1 
-          variants={fadeInUp}
-          className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mb-4"
-        >
-          Votre offre {serviceLevel}
+    <motion.div initial="hidden" animate="visible" exit="exit" variants={slideIn} className="max-w-xl mx-auto">
+      <div className="text-center mb-8">
+        <motion.h1 variants={fadeInUp} className="font-heading text-3xl font-bold text-slate-900 mb-2">
+          Finalisez votre demande de devis
         </motion.h1>
-        <motion.p 
-          variants={fadeInUp}
-          className="text-xl text-slate-600"
-        >
-          <span className="font-semibold">{config.users} utilisateur{config.users > 1 ? "s" : ""}</span>
-          {config.iaEnabled && <span className="mx-2">•</span>}
-          {config.iaEnabled && <span className="text-purple-600 font-medium">+ Module IA</span>}
-        </motion.p>
+        <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-slate-100 rounded-full">
+          <offer.icon className="w-4 h-4 text-cyrelis-blue" />
+          <span className="text-sm font-medium text-slate-700">
+            {offer.name} • {users} {unitPlural}
+          </span>
+        </motion.div>
       </div>
 
-      {/* Section A : Matrice de responsabilités */}
-      <motion.div variants={scaleIn} className="mb-8">
-        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-          <span className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white text-sm">A</span>
-          Qui gère quoi ?
-        </h2>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Colonne Cyrélis */}
-          <div className={`rounded-2xl p-6 border ${
-            isAutonomie ? "bg-cyrelis-mint/10 border-cyrelis-mint/30" : "bg-cyrelis-blue/10 border-cyrelis-blue/30"
-          }`}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold ${
-                isAutonomie ? "bg-cyrelis-mint" : "bg-cyrelis-blue"
-              }`}>
-                C
-              </div>
-              <div>
-                <h3 className={`font-bold ${isAutonomie ? "text-cyrelis-mint" : "text-cyrelis-blue"}`}>Géré par Cyrélis</h3>
-                <p className="text-xs text-slate-500">On s'en occupe pour vous</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              {responsibilities.cyrelis.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 bg-white/70 p-3 rounded-xl">
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="text-sm text-slate-700 flex-1">{item.label}</span>
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                </div>
-              ))}
-            </div>
-
-            <div className={`mt-4 p-3 rounded-xl text-center text-white ${
-              isAutonomie ? "bg-cyrelis-mint" : "bg-cyrelis-blue"
-            }`}>
-              <span className="font-bold">{responsibilities.cyrelis.length} tâches</span>
-              <span className="opacity-80 ml-1">gérées par Cyrélis</span>
-            </div>
-          </div>
-
-          {/* Colonne Client */}
-          <div className={`rounded-2xl p-6 border ${
-            isAutonomie ? "bg-amber-50 border-amber-200" : "bg-green-50 border-green-200"
-          }`}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
-                isAutonomie ? "bg-amber-500 text-white" : "bg-green-100 text-green-700"
-              }`}>
-                {isAutonomie ? "!" : "✓"}
-              </div>
-              <div>
-                <h3 className={`font-bold ${isAutonomie ? "text-amber-700" : "text-green-700"}`}>
-                  À votre charge
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {isAutonomie ? "Nécessite du temps interne" : "Presque rien !"}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              {responsibilities.client.map((item, i) => (
-                <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${
-                  item.critical ? "bg-amber-100/70 border border-amber-200" : "bg-white/70"
-                }`}>
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="text-sm text-slate-700 flex-1">{item.label}</span>
-                  {item.critical && (
-                    <span className="text-amber-600 text-xs font-semibold">Important</span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className={`mt-4 p-3 rounded-xl text-center text-white ${
-              isAutonomie ? "bg-amber-500" : "bg-green-500"
-            }`}>
-              <span className="font-bold">{responsibilities.client.length} tâche{responsibilities.client.length > 1 ? "s" : ""}</span>
-              <span className="opacity-80 ml-1">
-                {isAutonomie ? "à gérer en interne" : "seulement"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Conseil pour Autonomie */}
-        {isAutonomie && responsibilities.client.length > 2 && (
-          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-            <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-amber-800">
-                <strong>Vous manquez de temps ?</strong> Avec l'offre Partenaire, 
-                Cyrélis gère tout cela pour vous.
-              </p>
-              <button 
-                onClick={onReset}
-                className="mt-2 text-sm font-semibold text-amber-700 underline hover:text-amber-900"
-              >
-                Comparer avec l'offre Partenaire →
-              </button>
-            </div>
-          </div>
-        )}
-      </motion.div>
-
-      {/* Section B : Transparence financière */}
-      <motion.div variants={scaleIn} className="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 mb-8">
-        <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-          <span className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white text-sm">B</span>
-          Transparence financière
-        </h2>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* CAPEX */}
-          <div className="bg-slate-50 rounded-xl p-6">
-            <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 bg-slate-200 rounded flex items-center justify-center text-xs">1</span>
-              Investissement initial (une fois)
-            </h3>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium text-slate-900">Pack Démarrage</div>
-                  <div className="text-xs text-slate-500">{pricing.packBase.ht}€ + ({config.users} × {pricing.packPerUser.ht}€)</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-slate-900">{formatPrice(pricing.packTotal.ht)} <span className="text-xs font-normal text-slate-500">HT</span></div>
-                  <div className="text-sm text-slate-600">{formatPrice(pricing.packTotal.ttc)} <span className="text-xs">TTC</span></div>
-                </div>
-              </div>
-
-              {pricing.extras.length > 0 && (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium text-slate-900">Options sécurité</div>
-                    <div className="text-xs text-slate-500">{pricing.extras.map(e => e.name).join(", ")}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-slate-900">{formatPrice(pricing.extrasTotal.ht)} <span className="text-xs font-normal text-slate-500">HT</span></div>
-                    <div className="text-sm text-slate-600">{formatPrice(pricing.extrasTotal.ttc)} <span className="text-xs">TTC</span></div>
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-                <span className="font-bold text-slate-700">Total CAPEX</span>
-                <div className="text-right">
-                  <div className="text-xl font-black text-slate-800">{formatPrice(pricing.totalOneShot.ht)} <span className="text-sm font-normal text-slate-500">HT</span></div>
-                  <div className="text-base font-bold text-slate-600">{formatPrice(pricing.totalOneShot.ttc)} <span className="text-xs">TTC</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* OPEX */}
-          <div className={`rounded-xl p-6 border ${
-            isAutonomie ? "bg-cyrelis-mint/10 border-cyrelis-mint/30" : "bg-cyrelis-blue/10 border-cyrelis-blue/30"
-          }`}>
-            <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2 ${
-              isAutonomie ? "text-cyrelis-mint" : "text-cyrelis-blue"
-            }`}>
-              <span className={`w-6 h-6 rounded flex items-center justify-center text-xs text-white ${
-                isAutonomie ? "bg-cyrelis-mint" : "bg-cyrelis-blue"
-              }`}>2</span>
-              Abonnement mensuel (récurrent)
-            </h3>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium text-slate-900">Licences {serviceLevel}</div>
-                  <div className="text-xs text-slate-500">{config.users} × {pricing.licensePerUser.ht}€ HT ({pricing.licensePerUser.ttc}€ TTC)</div>
-                </div>
-                <div className="text-right">
-                  <div className={`font-bold ${isAutonomie ? "text-cyrelis-mint" : "text-cyrelis-blue"}`}>
-                    {formatPrice(pricing.licenseTotal.ht)} <span className="text-xs font-normal text-slate-500">HT</span>
-                  </div>
-                  <div className="text-sm text-slate-600">{formatPrice(pricing.licenseTotal.ttc)} <span className="text-xs">TTC</span></div>
-                </div>
-              </div>
-
-              {pricing.iaEnabled && (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium text-purple-700">Module IA</div>
-                    <div className="text-xs text-slate-500">{config.users} × {pricing.iaPerUser.ht}€ HT ({pricing.iaPerUser.ttc}€ TTC)</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-purple-700">+{formatPrice(pricing.iaTotal.ht)} <span className="text-xs font-normal text-slate-500">HT</span></div>
-                    <div className="text-sm text-purple-600">+{formatPrice(pricing.iaTotal.ttc)} <span className="text-xs">TTC</span></div>
-                  </div>
-                </div>
-              )}
-
-              <div className={`pt-3 border-t flex justify-between items-center ${
-                isAutonomie ? "border-cyrelis-mint/30" : "border-cyrelis-blue/30"
-              }`}>
-                <span className="font-bold text-slate-700">Total OPEX/mois</span>
-                <div className="text-right">
-                  <div className={`text-xl font-black ${isAutonomie ? "text-cyrelis-mint" : "text-cyrelis-blue"}`}>
-                    {formatPrice(pricing.monthlyTotal.ht)} <span className="text-sm font-normal text-slate-500">HT</span>
-                  </div>
-                  <div className="text-base font-bold text-slate-600">{formatPrice(pricing.monthlyTotal.ttc)} <span className="text-xs">TTC</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Projections annuelles */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Année 1 */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Année 1 — L'investissement</h3>
-              <span className="px-2 py-0.5 bg-white/10 rounded text-xs">CAPEX + OPEX</span>
-            </div>
-
-            <div className="mb-3">
-              <div className="text-4xl font-black">{formatPrice(pricing.year1.ht)} <span className="text-lg font-normal text-slate-400">HT</span></div>
-              <div className="text-xl font-bold text-slate-300">{formatPrice(pricing.year1.ttc)} <span className="text-sm font-normal text-slate-500">TTC</span></div>
-            </div>
-
-            <div className="text-xs text-slate-400 mb-4 font-mono bg-black/20 p-2 rounded">
-              = {formatPrice(pricing.totalOneShot.ht)} + ({formatPrice(pricing.monthlyTotal.ht)} × 12)
-            </div>
-
-            <div className="space-y-2 text-sm border-t border-white/10 pt-4">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Par mois (lissé)</span>
-                <span className="font-semibold">{formatPrice(pricing.year1.ht / 12)} HT <span className="text-slate-400">({formatPrice(pricing.year1.ttc / 12)} TTC)</span></span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Par utilisateur/mois</span>
-                <span className="font-semibold">{formatPriceDecimal(pricing.year1.ht / 12 / config.users)} HT</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Année 2+ */}
-          <div className={`rounded-2xl p-6 text-white relative overflow-hidden ${
-            isAutonomie 
-              ? "bg-gradient-to-br from-cyrelis-mint to-teal-600" 
-              : "bg-gradient-to-br from-cyrelis-blue to-slate-800"
-          }`}>
-            <div className="absolute -top-1 -right-1">
-              <div className="bg-green-400 text-green-900 text-xs font-bold px-3 py-1.5 rounded-bl-xl rounded-tr-xl shadow-lg">
-                -{pricing.savingsPercent}% vs A1
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Année 2+ — Croisière</h3>
-              <span className="px-2 py-0.5 bg-white/20 rounded text-xs">OPEX seul</span>
-            </div>
-
-            <div className="mb-3">
-              <div className="text-4xl font-black">{formatPrice(pricing.yearN.ht)} <span className="text-lg font-normal opacity-70">HT/an</span></div>
-              <div className="text-xl font-bold opacity-90">{formatPrice(pricing.yearN.ttc)} <span className="text-sm font-normal opacity-70">TTC/an</span></div>
-            </div>
-
-            <div className="text-xs text-white/60 mb-4 font-mono bg-black/10 p-2 rounded">
-              = {formatPrice(pricing.monthlyTotal.ht)} × 12
-            </div>
-
-            <div className="space-y-2 text-sm border-t border-white/20 pt-4">
-              <div className="flex justify-between">
-                <span className="text-white/70">Par mois</span>
-                <span className="font-semibold">{formatPrice(pricing.monthlyTotal.ht)} HT <span className="text-white/50">({formatPrice(pricing.monthlyTotal.ttc)} TTC)</span></span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Par utilisateur/mois</span>
-                <span className="font-semibold">{formatPriceDecimal(pricing.monthlyTotal.ht / config.users)} HT</span>
-              </div>
-            </div>
-
-            <div className="mt-4 p-3 bg-white/10 rounded-xl flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-300" />
-              <span className="text-sm">
-                <strong>{formatPrice(pricing.savings.ht)} HT</strong> ({formatPrice(pricing.savings.ttc)} TTC) économisés vs A1
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Explication */}
-        <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-          <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-bold text-slate-900 mb-1">Pourquoi cette différence ?</h4>
-              <p className="text-sm text-slate-600">
-                L'<strong>Année 1</strong> inclut l'installation et la formation (investissement unique). 
-                Dès l'<strong>Année 2</strong>, vous ne payez plus que l'abonnement mensuel — votre coût devient prévisible.
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Actions */}
-      <motion.div variants={fadeInUp} className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <motion.form variants={scaleIn} onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+        <div className="space-y-5">
           <div>
-            <h3 className="font-bold text-slate-900 text-lg">Prêt à sécuriser votre entreprise ?</h3>
-            <p className="text-sm text-slate-600">Recevez votre devis définitif sous 24h</p>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Nom complet <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyrelis-blue focus:border-transparent transition"
+                placeholder="Jean Dupont"
+              />
+            </div>
           </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <button
-              onClick={onReset}
-              className="flex-1 md:flex-none px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2 inline" />
-              Modifier
-            </button>
-            <Button
-              onClick={handleRequestQuote}
-              className={`flex-1 md:flex-none px-8 py-4 h-14 rounded-xl font-bold text-lg shadow-lg hover:scale-105 transition-all ${
-                isAutonomie 
-                  ? "bg-gradient-to-r from-cyrelis-mint to-teal-500 text-white"
-                  : "bg-gradient-to-r from-cyrelis-blue to-slate-800 text-white"
-              }`}
-            >
-              <Mail className="w-5 h-5 mr-2" />
-              Demander un devis
-            </Button>
-          </div>
-        </div>
-      </motion.div>
 
-      {/* Trust badges */}
-      <motion.div variants={fadeInUp} className="mt-8 text-center text-sm text-slate-500">
-        <div className="flex items-center justify-center gap-6 mb-3">
-          <span className="flex items-center gap-1.5">
-            <Shield className="w-4 h-4 text-cyrelis-mint" />
-            Données chiffrées AES-256
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Lock className="w-4 h-4 text-cyrelis-mint" />
-            Hébergement France
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Phone className="w-4 h-4 text-cyrelis-mint" />
-            Support humain
-          </span>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Email professionnel <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyrelis-blue focus:border-transparent transition"
+                placeholder="jean@entreprise.fr"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Entreprise</label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyrelis-blue focus:border-transparent transition"
+                  placeholder="Mon Entreprise"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Téléphone</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyrelis-blue focus:border-transparent transition"
+                  placeholder="06 12 34 56 78"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Précisions sur votre projet <span className="text-slate-400">(optionnel)</span>
+            </label>
+            <textarea
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyrelis-blue focus:border-transparent resize-none transition"
+              placeholder="Contexte particulier, délais, questions..."
+            />
+          </div>
+
+          {error && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-14 bg-cyrelis-blue text-white rounded-xl font-bold hover:bg-cyrelis-blue/90 disabled:opacity-50 transition"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Envoi en cours...
+              </>
+            ) : (
+              <>
+                <Send className="w-5 h-5 mr-2" />
+                Recevoir mon devis gratuit
+              </>
+            )}
+          </Button>
         </div>
-        <p>Tous les prix sont HT • Devis gratuit et sans engagement</p>
+
+        <p className="text-xs text-slate-500 text-center mt-4">
+          Devis gratuit et sans engagement. Réponse sous 24h.
+        </p>
+      </motion.form>
+
+      <motion.div variants={fadeInUp} className="mt-6">
+        <button onClick={onBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium mx-auto">
+          <ArrowLeft className="w-4 h-4" />
+          Modifier ma configuration
+        </button>
       </motion.div>
     </motion.div>
   );
@@ -1730,183 +1041,60 @@ Cordialement
 // COMPOSANT PRINCIPAL
 // ============================================================
 export default function SimulateurPage() {
-  // État des données
-  const [pricingData, setPricingData] = useState<PricingData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // État du wizard
   const [currentStep, setCurrentStep] = useState(1);
-  const [config, setConfig] = useState<ConfigState>({
-    users: 10,
-    selectedOffer: null,
-    iaEnabled: false,
-    selectedExtras: [],
-  });
+  const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
+  const [users, setUsers] = useState(5);
 
-  // Charger les données
-  useEffect(() => {
-    async function fetchPricing() {
-      try {
-        const response = await fetch("/api/public/pricing");
-        if (!response.ok) throw new Error("Erreur de chargement");
-        const data = await response.json();
-        setPricingData(data);
-      } catch (err) {
-        setError("Impossible de charger les tarifs");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPricing();
-  }, []);
-
-  const handleOfferSelect = (offer: string) => {
-    setConfig({ ...config, selectedOffer: offer });
+  const handleOfferSelect = (offerId: string) => {
+    setSelectedOfferId(offerId);
+    const offer = OFFERS.find(o => o.id === offerId);
+    setUsers(offer?.unitType === "poste" ? 5 : 5);
     setCurrentStep(2);
-  };
-
-  const handleBack = () => {
-    if (currentStep === 2) {
-      setCurrentStep(1);
-    } else if (currentStep === 3) {
-      setCurrentStep(2);
-    }
   };
 
   const handleReset = () => {
     setCurrentStep(1);
-    setConfig({
-      users: 10,
-      selectedOffer: null,
-      iaEnabled: false,
-      selectedExtras: [],
-    });
+    setSelectedOfferId(null);
+    setUsers(5);
   };
 
-  // Loading
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 pt-28 pb-20 flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-            <Loader2 className="w-12 h-12 text-cyrelis-blue mx-auto mb-6" />
-          </motion.div>
-          <p className="text-slate-600 text-lg">Chargement du configurateur...</p>
-        </motion.div>
-      </main>
-    );
-  }
-
-  // Error
-  if (error || !pricingData) {
-    return (
-      <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 pt-28 pb-20 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4 text-lg">{error || "Erreur de chargement"}</p>
-          <Button onClick={() => window.location.reload()} className="rounded-xl">
-            Réessayer
-          </Button>
-        </div>
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white via-slate-50/50 to-white pt-28 pb-20 overflow-hidden">
-      <HeroBackground />
-      
-      <div className="container mx-auto px-4 relative z-10">
-        {/* Header avec navigation */}
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 pt-28 pb-20">
+      <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            {currentStep > 1 ? (
-              <button
-                onClick={handleBack}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Retour
-              </button>
-            ) : (
-              <div />
-            )}
-            
-            {currentStep > 1 && (
-              <button
-                onClick={handleReset}
-                className="text-slate-500 hover:text-slate-700 font-medium transition-colors"
-              >
+          {currentStep > 1 && (
+            <div className="flex items-center justify-end mb-4">
+              <button onClick={handleReset} className="text-sm text-slate-500 hover:text-slate-700">
                 Recommencer
               </button>
-            )}
-          </div>
-
+            </div>
+          )}
           <ProgressTimeline currentStep={currentStep} />
         </div>
 
-        {/* Contenu */}
         <AnimatePresence mode="wait">
-          {currentStep === 1 && (
-            <Step1OfferChoice
-              key="step1"
-              pricingData={pricingData}
-              config={config}
-              onSelect={handleOfferSelect}
-            />
-          )}
-
-          {currentStep === 2 && (
+          {currentStep === 1 && <Step1OfferChoice key="step1" onSelect={handleOfferSelect} />}
+          {currentStep === 2 && selectedOfferId && (
             <Step2Configuration
               key="step2"
-              pricingData={pricingData}
-              config={config}
-              setConfig={setConfig}
+              selectedOfferId={selectedOfferId}
+              users={users}
+              setUsers={setUsers}
               onNext={() => setCurrentStep(3)}
-              onBack={handleBack}
+              onBack={() => setCurrentStep(1)}
             />
           )}
-
-          {currentStep === 3 && (
-            <Step3Summary
+          {currentStep === 3 && selectedOfferId && (
+            <Step3Contact
               key="step3"
-              pricingData={pricingData}
-              config={config}
-              onBack={handleBack}
+              selectedOfferId={selectedOfferId}
+              users={users}
+              onBack={() => setCurrentStep(2)}
               onReset={handleReset}
             />
           )}
         </AnimatePresence>
       </div>
-
-      {/* Custom styles */}
-      <style jsx>{`
-        input[type="range"]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 28px;
-          height: 28px;
-          background: linear-gradient(135deg, #2dd4bf, #14b8a6);
-          border-radius: 50%;
-          cursor: pointer;
-          box-shadow: 0 4px 10px rgba(45, 212, 191, 0.4);
-          border: 4px solid white;
-        }
-        input[type="range"]::-moz-range-thumb {
-          width: 28px;
-          height: 28px;
-          background: linear-gradient(135deg, #2dd4bf, #14b8a6);
-          border-radius: 50%;
-          cursor: pointer;
-          box-shadow: 0 4px 10px rgba(45, 212, 191, 0.4);
-          border: 4px solid white;
-        }
-      `}</style>
     </main>
   );
 }

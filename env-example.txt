@@ -1,0 +1,36 @@
+# ============================================
+# CYRÉLIS - CONFIGURATION ENVIRONNEMENT
+# Site Vitrine - Copier ce fichier vers .env
+# ============================================
+
+# Base URL du site
+NEXT_PUBLIC_BASE_URL=https://cyrelis.fr
+
+# ============================================
+# EMAIL (Resend - Recommandé)
+# ============================================
+# Créer un compte sur https://resend.com
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxx
+EMAIL_FROM=noreply@cyrelis.fr
+EMAIL_FROM_NAME=Cyrélis
+
+# Email qui reçoit les notifications de contact
+ADMIN_NOTIFICATION_EMAIL=contact@cyrelis.fr
+
+# ============================================
+# EMAIL (SMTP - Alternative)
+# ============================================
+# Si vous préférez utiliser SMTP au lieu de Resend
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USER=votre-email@gmail.com
+# SMTP_PASSWORD=votre-mot-de-passe-application
+# SMTP_SECURE=false
+
+# ============================================
+# OPTIONNEL
+# ============================================
+# Afficher la page "Coming Soon"
+SHOW_COMING_SOON=false
+
+

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Mail } from "lucide-react";
+import { ShieldCheck, Mail, MessageSquare } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -28,9 +28,9 @@ export function Footer() {
           <div>
             <h4 className="font-bold text-white mb-6 text-sm uppercase tracking-wider font-heading">Explorer</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/offres" className="hover:text-cyrelis-mint transition-colors">Le Socle</Link></li>
-              <li><Link href="/simulateur" className="hover:text-cyrelis-mint transition-colors">Simulateur</Link></li>
+              <li><Link href="/simulateur" className="hover:text-cyrelis-mint transition-colors">Configurateur</Link></li>
               <li><Link href="/a-propos" className="hover:text-cyrelis-mint transition-colors">Notre Histoire</Link></li>
+              <li><Link href="/contact" className="hover:text-cyrelis-mint transition-colors">Contact</Link></li>
             </ul>
           </div>
 
@@ -52,7 +52,11 @@ export function Footer() {
                 <Mail className="h-4 w-4 text-cyrelis-mint" />
                 <a href="mailto:contact@cyrelis.fr" className="hover:text-white transition-colors">contact@cyrelis.fr</a>
               </li>
-              <li className="text-slate-500">
+              <li className="flex items-center gap-3">
+                <MessageSquare className="h-4 w-4 text-cyrelis-mint" />
+                <Link href="/contact" className="hover:text-white transition-colors">Formulaire de contact</Link>
+              </li>
+              <li className="text-slate-500 mt-2">
                 Lundi - Vendredi<br/>
                 09h00 - 18h00
               </li>

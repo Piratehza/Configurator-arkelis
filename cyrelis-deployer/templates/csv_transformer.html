@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyrélis Deployer - Transformateur CSV</title>
+    <style>
+        :root {
+            --bleu-abysse: #0F172A;
+            --menthe-cyrelis: #2DD4BF;
+            --blanc-pur: #FFFFFF;
+            --gris-vapeur: #F1F5F9;
+            --corail-urgence: #FB7185;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gris-vapeur);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: var(--bleu-abysse);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 {
+            color: var(--blanc-pur);
+            font-size: 20px;
+        }
+        
+        .navbar h1 span {
+            color: var(--menthe-cyrelis);
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .navbar-links a {
+            color: var(--blanc-pur);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .navbar-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .navbar-links a.active {
+            background: var(--menthe-cyrelis);
+            color: var(--bleu-abysse);
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+        
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-header h2 {
+            color: var(--bleu-abysse);
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .page-header p {
+            color: #64748b;
+        }
+        
+        .upload-card {
+            background: var(--blanc-pur);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 48px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--menthe-cyrelis);
+            background: rgba(45, 212, 191, 0.05);
+        }
+        
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .drop-zone h3 {
+            color: var(--bleu-abysse);
+            margin-bottom: 8px;
+        }
+        
+        .drop-zone p {
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        .drop-zone input {
+            display: none;
+        }
+        
+        .file-info {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--gris-vapeur);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .file-info.active {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: var(--bleu-abysse);
+        }
+        
+        .transform-btn {
+            background: var(--menthe-cyrelis);
+            color: var(--bleu-abysse);
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 24px;
+            width: 100%;
+        }
+        
+        .transform-btn:hover {
+            background: #14b8a6;
+        }
+        
+        .transform-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .logs-container {
+            background: var(--bleu-abysse);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .logs-container.active {
+            display: block;
+        }
+        
+        .log-entry {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            padding: 4px 0;
+            color: #94a3b8;
+        }
+        
+        .log-entry.success {
+            color: var(--menthe-cyrelis);
+        }
+        
+        .log-entry.warn {
+            color: #fbbf24;
+        }
+        
+        .log-entry.error {
+            color: var(--corail-urgence);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            display: none;
+        }
+        
+        .action-buttons.active {
+            display: flex;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+            border: none;
+        }
+        
+        .action-btn.primary {
+            background: var(--menthe-cyrelis);
+            color: var(--bleu-abysse);
+        }
+        
+        .action-btn.secondary {
+            background: var(--bleu-abysse);
+            color: var(--blanc-pur);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Cyrélis <span>Deployer</span></h1>
+        <div class="navbar-links">
+            <a href="/">Dashboard</a>
+            <a href="/csv-transformer" class="active">Transformateur CSV</a>
+            <a href="/credentials-form">Saisie Identifiants</a>
+            <a href="/logout">Déconnexion</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="page-header">
+            <h2>📊 Transformateur CSV/Excel</h2>
+            <p>Convertissez vos fichiers en format compatible Bitwarden</p>
+        </div>
+        
+        <div class="upload-card">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">📁</div>
+                <h3>Glissez votre fichier ici</h3>
+                <p>ou cliquez pour sélectionner (CSV, Excel)</p>
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+            </div>
+            
+            <div class="file-info" id="fileInfo">
+                <span class="file-name" id="fileName"></span>
+                <span>✓ Prêt</span>
+            </div>
+            
+            <button class="transform-btn" id="transformBtn" disabled>🔄 Transformer</button>
+            
+            <div class="logs-container" id="logsContainer">
+                <div id="logsContent"></div>
+            </div>
+            
+            <div class="action-buttons" id="actionButtons">
+                <a href="/review-users" class="action-btn primary">👀 Réviser les utilisateurs</a>
+                <a href="/" class="action-btn secondary">🚀 Passer au déploiement</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const transformBtn = document.getElementById('transformBtn');
+        const logsContainer = document.getElementById('logsContainer');
+        const logsContent = document.getElementById('logsContent');
+        const actionButtons = document.getElementById('actionButtons');
+        
+        let selectedFile = null;
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+        
+        function handleFile(file) {
+            if (file) {
+                selectedFile = file;
+                fileName.textContent = file.name;
+                fileInfo.classList.add('active');
+                transformBtn.disabled = false;
+            }
+        }
+        
+        transformBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            transformBtn.disabled = true;
+            transformBtn.textContent = '⏳ Transformation en cours...';
+            logsContainer.classList.add('active');
+            logsContent.innerHTML = '<div class="log-entry">Initialisation...</div>';
+            actionButtons.classList.remove('active');
+            
+            const formData = new FormData();
+            formData.append('csv_file', selectedFile);
+            
+            try {
+                const response = await fetch('/api/transform-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                logsContent.innerHTML = '';
+                data.logs.forEach(log => {
+                    const div = document.createElement('div');
+                    div.className = `log-entry ${log.level}`;
+                    div.textContent = log.message;
+                    logsContent.appendChild(div);
+                });
+                
+                if (data.data && data.data.length > 0) {
+                    actionButtons.classList.add('active');
+                }
+                
+            } catch (error) {
+                logsContent.innerHTML = `<div class="log-entry error">❌ Erreur: ${error.message}</div>`;
+            } finally {
+                transformBtn.disabled = false;
+                transformBtn.textContent = '🔄 Transformer';
+            }
+        });
+    </script>
+</body>
+</html>
+

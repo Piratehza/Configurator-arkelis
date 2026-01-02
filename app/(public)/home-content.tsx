@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useRef } from "react";
 import {
   ArrowRight,
   Shield,
@@ -10,1194 +10,511 @@ import {
   CheckCircle2,
   ChevronRight,
   Lock,
-  AlertTriangle,
-  Euro,
-  Building2,
   Zap,
-  HeadphonesIcon,
-  Fingerprint,
-  Server,
-  RotateCcw,
-  Sparkles,
   Target,
-  Clock,
   Wrench,
   RefreshCcw,
   Users,
-  BookOpen,
   Headphones,
-  TrendingUp,
+  ShieldCheck,
+  ArrowUpRight,
+  Quote,
 } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import {
-  HeroBackground,
-  GridBackground,
-  FloatingShapes,
-  AnimatedGradient,
-} from "@/components/backgrounds/AnimatedBackground";
-
-// Animation variants
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } 
-  },
-};
-
-const stagger = {
-  visible: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { 
-    opacity: 1, 
-    scale: 1,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
-  },
-};
-
-// Types pour les données API
-interface Offer {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  shortDesc: string | null;
-  priceType: string;
-  basePrice: number;
-  pricePerUser: number;
-  setupFee: number | null;
-  offerType: string;
-  restrictedToSlug: string | null;
-  quota: string | null;
-  category: string | null;
-  isPopular: boolean;
-  features: string[];
-}
-
-interface PricingConfig {
-  buildBaseFee: number;
-  buildPerUserFee: number;
-  vatRate: number;
-  minUsers: number;
-  maxUsers: number;
-}
-
-interface PricingData {
-  subscriptions: Offer[];
-  addons: Offer[];
-  oneShots: Offer[];
-  config: PricingConfig;
-}
 
 export default function Home() {
-  // État pour les données dynamiques
-  const [pricingData, setPricingData] = useState<PricingData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Charger les données depuis l'API
-  useEffect(() => {
-    async function fetchPricing() {
-      try {
-        const res = await fetch("/api/public/pricing");
-        if (res.ok) {
-          const data = await res.json();
-          setPricingData(data);
-        }
-      } catch (error) {
-        console.error("Erreur chargement tarifs:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPricing();
-  }, []);
-
-  // Valeurs par défaut pendant le chargement
-  const buildFee = pricingData?.config.buildBaseFee ?? 490;
-  const buildPerUser = pricingData?.config.buildPerUserFee ?? 15;
-  
-  // Trouver les offres spécifiques
-  const autonomyOffer = pricingData?.subscriptions.find(o => o.slug === "autonomy" || o.slug === "autonomie");
-  const partnerOffer = pricingData?.subscriptions.find(o => o.slug === "partner" || o.slug === "partenaire");
-  const iaModule = pricingData?.addons.find(o => o.slug === "ia_security" || o.slug === "ia-security" || o.slug.includes("ia"));
-  
-  const autonomyPrice = autonomyOffer?.pricePerUser ?? 6;
-  const partnerPrice = partnerOffer?.pricePerUser ?? 12;
-  const iaPrice = iaModule?.pricePerUser ?? 3;
-  const iaQuota = iaModule?.quota ?? "30 requêtes/user/mois";
-  
-  const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"]
-  });
-  
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
   return (
-    <main className="min-h-screen bg-white pt-20 overflow-hidden">
+    <main className="min-h-screen bg-white overflow-hidden">
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* HERO SECTION - Acronyme CY-RE-LIS IMPACTANT */}
+      {/* HERO - Design Premium avec image de fond */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section ref={heroRef} className="relative min-h-[90vh] flex flex-col justify-center bg-gradient-to-br from-slate-950 via-cyrelis-blue to-slate-900 overflow-hidden">
-        {/* Background futuriste */}
+      <section className="relative min-h-screen flex items-center">
+        {/* Image de fond */}
         <div className="absolute inset-0">
-          {/* Grille hexagonale/tech */}
-          <div className="absolute inset-0 opacity-[0.07]">
-            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="hexagons" width="50" height="43.4" patternUnits="userSpaceOnUse" patternTransform="scale(2)">
-                  <polygon 
-                    points="24.8,22 37.3,29.2 37.3,43.7 24.8,50.9 12.3,43.7 12.3,29.2" 
-                    fill="none" 
-                    stroke="rgba(45, 212, 191, 0.5)" 
-                    strokeWidth="0.5"
-                  />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#hexagons)" />
-            </svg>
+          <Image
+            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2940&auto=format&fit=crop"
+            alt="Cybersécurité"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-900/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/50" />
           </div>
           
-          {/* Lignes de connexion animées */}
-          <div className="absolute inset-0">
-            <svg className="w-full h-full opacity-20" viewBox="0 0 1000 600" preserveAspectRatio="none">
-              <motion.path 
-                d="M0,300 Q250,200 500,300 T1000,300"
-                stroke="url(#gradient1)"
-                strokeWidth="1"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
-              />
-              <motion.path 
-                d="M0,350 Q250,450 500,350 T1000,350"
-                stroke="url(#gradient2)"
-                strokeWidth="1"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 4, repeat: Infinity, repeatType: "reverse", delay: 1 }}
-              />
-              <defs>
-                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="transparent" />
-                  <stop offset="50%" stopColor="#2dd4bf" />
-                  <stop offset="100%" stopColor="transparent" />
-                </linearGradient>
-                <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="transparent" />
-                  <stop offset="50%" stopColor="#0f172a" />
-                  <stop offset="100%" stopColor="transparent" />
-                </linearGradient>
-              </defs>
-            </svg>
+        {/* Contenu */}
+        <div className="relative z-10 container mx-auto px-4 max-w-7xl">
+          <div className="grid lg:grid-cols-2 gap-16 items-center min-h-screen py-32">
+            {/* Colonne gauche - Texte */}
+            <div className="space-y-8">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                <span className="w-2 h-2 bg-cyrelis-mint rounded-full animate-pulse" />
+                <span className="text-sm font-medium text-white/90">
+                  Cybersécurité managée pour TPE
+                </span>
           </div>
 
-          {/* Points lumineux statiques */}
-          <div className="absolute inset-0">
-            {[...Array(30)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-cyrelis-mint rounded-full"
-                style={{
-                  left: `${5 + (i * 3.1) % 90}%`,
-                  top: `${10 + (i * 2.7) % 80}%`,
-                }}
-                animate={{
-                  opacity: [0.1, 0.6, 0.1],
-                  scale: [1, 1.5, 1],
-                }}
-                transition={{
-                  duration: 2 + (i % 3),
-                  repeat: Infinity,
-                  delay: i * 0.1,
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-950/50" />
-          
-          {/* Glow effects */}
-          <motion.div 
-            className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-cyrelis-mint/8 rounded-full blur-[120px]"
-            animate={{ opacity: [0.3, 0.5, 0.3], x: [0, 50, 0] }}
-            transition={{ duration: 10, repeat: Infinity }}
-          />
-          <motion.div 
-            className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyrelis-blue/15 rounded-full blur-[100px]"
-            animate={{ opacity: [0.4, 0.6, 0.4], x: [0, -30, 0] }}
-            transition={{ duration: 8, repeat: Infinity, delay: 2 }}
-          />
-        </div>
-        
-        <motion.div 
-          className="container mx-auto px-4 max-w-6xl relative z-10 text-center"
-          style={{ y: heroY, opacity: heroOpacity }}
-        >
-          {/* Logo Cyrélis */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-10"
-          >
-            <div className="relative inline-block">
-              <motion.div
-                className="absolute -inset-4 bg-cyrelis-mint/20 rounded-3xl blur-2xl"
-                animate={{ opacity: [0.3, 0.6, 0.3] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-              <img 
-                src="https://i.postimg.cc/NMBBGpDL/Gemini-Generated-Image-9zcx399zcx399zcx.png"
-                alt="Logo Cyrélis"
-                className="relative h-24 w-24 md:h-32 md:w-32 mx-auto rounded-3xl shadow-2xl shadow-cyrelis-mint/30 border-2 border-white/10 object-contain"
-              />
+            {/* Acronyme CY-RÉ-LIS */}
+            <div className="mb-6">
+              <div className="grid grid-cols-5 gap-0 w-fit">
+                {/* Ligne 1 : CY • RÉ • LIS */}
+                <span className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center">CY</span>
+                <span className="text-4xl md:text-5xl lg:text-6xl font-bold text-white/30 text-center">•</span>
+                <span className="text-4xl md:text-5xl lg:text-6xl font-bold text-cyrelis-mint text-center">RÉ</span>
+                <span className="text-4xl md:text-5xl lg:text-6xl font-bold text-white/30 text-center">•</span>
+                <span className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center">LIS</span>
+                {/* Ligne 2 : Labels alignés */}
+                <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider text-center mt-2">Cyber</span>
+                <span></span>
+                <span className="text-[10px] md:text-xs text-cyrelis-mint font-semibold uppercase tracking-wider text-center mt-2">Résilience</span>
+                <span></span>
+                <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider text-center mt-2">Lisibilité</span>
+              </div>
             </div>
-          </motion.div>
 
-          {/* ACRONYME CY-RE-LIS - GRAND FORMAT */}
-          <div className="mb-12">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="flex justify-center items-end gap-2 md:gap-4 mb-6"
-            >
-              {/* CY */}
-              <motion.div
-                initial={{ opacity: 0, x: -50, rotateY: -90 }}
-                animate={{ opacity: 1, x: 0, rotateY: 0 }}
-                transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
-                className="relative group"
-              >
-                <motion.span 
-                  className="text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] font-black font-heading text-white tracking-tight"
-                  whileHover={{ scale: 1.05 }}
-                  style={{ textShadow: '0 0 60px rgba(45, 212, 191, 0.3)' }}
-                >
-                  CY
-                </motion.span>
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 1.2, duration: 0.6 }}
-                  className="absolute -bottom-2 left-0 right-0 h-1.5 bg-gradient-to-r from-cyrelis-mint to-cyrelis-mint/50 rounded-full"
-                />
-              </motion.div>
+            {/* Titre principal */}
+            <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight max-w-2xl">
+              Nous rendons la cybersécurité
+              <span className="text-cyrelis-mint"> résiliente</span> et
+              <span className="text-cyrelis-mint"> lisible</span>.
+            </h1>
 
-              {/* RÉ */}
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6, type: "spring" }}
-                className="relative group"
-              >
-                <motion.span 
-                  className="text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] font-black font-heading text-cyrelis-mint tracking-tight"
-                  whileHover={{ scale: 1.05 }}
-                  animate={{ 
-                    textShadow: [
-                      '0 0 20px rgba(45, 212, 191, 0.5)',
-                      '0 0 60px rgba(45, 212, 191, 0.8)',
-                      '0 0 20px rgba(45, 212, 191, 0.5)',
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  RÉ
-                </motion.span>
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 1.4, duration: 0.6 }}
-                  className="absolute -bottom-2 left-0 right-0 h-1.5 bg-gradient-to-r from-cyrelis-mint/50 via-cyrelis-mint to-cyrelis-mint/50 rounded-full"
-                />
-              </motion.div>
-
-              {/* LIS */}
-              <motion.div
-                initial={{ opacity: 0, x: 50, rotateY: 90 }}
-                animate={{ opacity: 1, x: 0, rotateY: 0 }}
-                transition={{ duration: 0.8, delay: 0.8, type: "spring" }}
-                className="relative group"
-              >
-                <motion.span 
-                  className="text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] font-black font-heading text-white tracking-tight"
-                  whileHover={{ scale: 1.05 }}
-                  style={{ textShadow: '0 0 60px rgba(45, 212, 191, 0.3)' }}
-                >
-                  LIS
-                </motion.span>
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 1.6, duration: 0.6 }}
-                  className="absolute -bottom-2 left-0 right-0 h-1.5 bg-gradient-to-r from-cyrelis-mint/50 to-cyrelis-mint rounded-full"
-                />
-              </motion.div>
-            </motion.div>
-
-            {/* Labels sous l'acronyme */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.8, duration: 0.6 }}
-              className="flex justify-center gap-8 md:gap-16 lg:gap-24"
-            >
-              <div className="text-center">
-                <span className="text-xs md:text-sm uppercase tracking-[0.3em] text-slate-400 font-medium">Cybersécurité</span>
-              </div>
-              <div className="text-center">
-                <span className="text-xs md:text-sm uppercase tracking-[0.3em] text-cyrelis-mint font-semibold">Résilience</span>
-              </div>
-              <div className="text-center">
-                <span className="text-xs md:text-sm uppercase tracking-[0.3em] text-slate-400 font-medium">Lisibilité</span>
-              </div>
-            </motion.div>
-              </div>
-
-          {/* Slogan */}
-          <motion.p 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2, duration: 0.8 }}
-            className="text-xl md:text-2xl lg:text-3xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed font-light"
-          >
-            Nous rendons la cybersécurité{" "}
-            <span className="text-cyrelis-mint font-semibold">résiliente</span> et{" "}
-            <span className="text-white font-semibold">lisible</span>.
-          </motion.p>
-
-          {/* Badge */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.2, duration: 0.6 }}
-            className="inline-flex items-center border border-cyrelis-mint/30 bg-white/5 backdrop-blur-sm px-5 py-2.5 rounded-full text-sm font-medium text-white mb-10"
-          >
-            <motion.span 
-              className="w-2 h-2 bg-cyrelis-mint rounded-full mr-3"
-              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            Protection managée pour TPE et indépendants
-          </motion.div>
+            {/* Description */}
+            <p className="text-lg text-slate-300 leading-relaxed max-w-xl">
+              Protection des accès, sécurité des postes, maintenance proactive. 
+              Une offre claire pour les TPE et indépendants.
+            </p>
 
           {/* CTA Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.4, duration: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link href="/simulateur">
-              <Button className="h-16 px-10 bg-cyrelis-mint text-cyrelis-blue font-bold hover:bg-white transition-all duration-300 shadow-xl shadow-cyrelis-mint/30 hover:shadow-2xl hover:shadow-white/20 hover:-translate-y-1 rounded-xl text-lg">
-                <Sparkles className="mr-2 h-5 w-5" />
+                  <Button className="h-14 px-8 bg-cyrelis-mint text-slate-900 font-semibold hover:bg-white rounded-xl text-lg transition-all shadow-2xl shadow-cyrelis-mint/20 hover:shadow-white/20">
                 Configurer mon offre
-                <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2} />
+                    <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
                 <Link href="/a-propos">
               <Button
-                className="h-16 px-10 bg-white/10 backdrop-blur-sm border-2 border-cyrelis-mint/50 text-white hover:bg-cyrelis-mint/20 hover:border-cyrelis-mint font-semibold rounded-xl transition-all duration-300 text-lg shadow-lg shadow-cyrelis-mint/10"
+                    variant="outline"
+                    className="h-14 px-8 bg-transparent border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 font-medium rounded-xl text-lg"
               >
-                Découvrir notre histoire
-                <ChevronRight className="ml-2 h-5 w-5" />
+                    Découvrir Cyrélis
                 </Button>
               </Link>
-          </motion.div>
-
-        </motion.div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* SECTION STATS - Après le scroll */}
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-white relative overflow-hidden">
-        <GridBackground />
-        
-        <div className="container mx-auto px-4 max-w-6xl relative z-10">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={stagger}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            <motion.div 
-              variants={scaleIn}
-              whileHover={{ scale: 1.03, y: -5 }}
-              className="bg-cyrelis-blue text-white p-8 rounded-2xl shadow-xl shadow-cyrelis-blue/20 cursor-default text-center"
-            >
-              <motion.div 
-                className="text-5xl font-bold mb-2"
-                initial={{ opacity: 0, scale: 0.5 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2, type: "spring" }}
-              >
-                100%
-              </motion.div>
-              <div className="text-sm text-slate-300 flex items-center justify-center gap-2">
-                <Lock className="w-4 h-4" />
-                Données chiffrées
               </div>
-            </motion.div>
 
-            <motion.div 
-              variants={scaleIn}
-              whileHover={{ scale: 1.03, y: -5 }}
-              className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg cursor-default text-center"
-            >
-              <motion.div 
-                className="text-5xl font-bold text-slate-900 mb-2"
-                initial={{ opacity: 0, scale: 0.5 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3, type: "spring" }}
-              >
-                24/7
-              </motion.div>
-              <div className="text-sm text-slate-500 flex items-center justify-center gap-2">
-                <Target className="w-4 h-4" />
-                Surveillance active
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              variants={scaleIn}
-              whileHover={{ scale: 1.03, y: -5 }}
-              className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg cursor-default text-center"
-            >
-              <motion.div 
-                className="text-5xl font-bold text-slate-900 mb-2"
-                initial={{ opacity: 0, scale: 0.5 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4, type: "spring" }}
-              >
-                4h
-              </motion.div>
-              <div className="text-sm text-slate-500 flex items-center justify-center gap-2">
-                <Clock className="w-4 h-4" />
-                Temps de réponse
-                    </div>
-            </motion.div>
-            
-            <motion.div 
-              variants={scaleIn}
-              whileHover={{ scale: 1.03, y: -5 }}
-              className="bg-gradient-to-br from-cyrelis-mint/20 to-cyrelis-mint/5 p-8 rounded-2xl border border-cyrelis-mint/30 cursor-default text-center"
-            >
-              <motion.div 
-                className="text-5xl font-bold text-cyrelis-blue mb-2"
-                initial={{ opacity: 0, scale: 0.5 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.5, type: "spring" }}
-              >
-                {autonomyPrice}€
-              </motion.div>
-              <div className="text-sm text-slate-600 flex items-center justify-center gap-2">
-                <Zap className="w-4 h-4" />
-                À partir de /user/mois
-                    </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* SECTION PROBLÈME - Métriques avec animations */}
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-slate-50 relative overflow-hidden">
-        <GridBackground />
-        
-        <div className="container mx-auto px-4 max-w-5xl relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={stagger}
-            className="text-center mb-16"
-          >
-            <motion.div variants={fadeInUp}>
-              <span className="inline-block px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-full mb-6">
-                ⚠️ Alerte sécurité
-              </span>
-            </motion.div>
-          <motion.h2 
-              variants={fadeInUp}
-              className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mb-6"
-            >
-              Votre sécurité actuelle vous expose
-            </motion.h2>
-            <motion.p 
-              variants={fadeInUp}
-              className="text-lg text-slate-600 max-w-2xl mx-auto"
-            >
-              Fichiers Excel, post-its, mots de passe réutilisés — ces pratiques
-              courantes sont des <strong className="text-red-600">portes ouvertes aux cyberattaques</strong>.
-            </motion.p>
-          </motion.div>
-
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={stagger}
-            className="grid md:grid-cols-3 gap-6"
-          >
-            {[
-              {
-                icon: RotateCcw,
-                title: "Perte de temps récurrente",
-                desc: "Combien de fois par semaine réinitialisez-vous un mot de passe oublié ?",
-                metric: "3x",
-                metricLabel: "/semaine",
-                color: "orange",
-              },
-              {
-                icon: Euro,
-                title: "Coût d'un arrêt",
-                desc: "Le coût moyen d'un arrêt d'activité suite à une cyberattaque pour une TPE.",
-                metric: "3 000€",
-                metricLabel: "/jour",
-                color: "red",
-              },
-              {
-                icon: AlertTriangle,
-                title: "Risque de fermeture",
-                desc: "60% des PME victimes de cyberattaque ferment dans les 6 mois.",
-                metric: "60%",
-                metricLabel: "",
-                color: "red",
-              },
-            ].map((item, i) => (
-                <motion.div 
-                  key={i} 
-                variants={fadeInUp}
-                whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="group bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-500"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <motion.div 
-                    className={`p-3 rounded-xl bg-${item.color}-50 border border-${item.color}-100 group-hover:scale-110 transition-transform duration-300`}
-                    whileHover={{ rotate: [0, -10, 10, 0] }}
-                  >
-                    <item.icon
-                      className={`w-6 h-6 text-${item.color}-500`}
-                      strokeWidth={1.5}
-                    />
-                  </motion.div>
-                  <div className="text-right">
-                    <motion.span 
-                      className={`text-3xl font-bold text-${item.color}-500`}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                      transition={{ delay: 0.2 + i * 0.1, type: "spring" }}
-                    >
-                      {item.metric}
-                    </motion.span>
-                    <span className="text-sm text-slate-400 ml-1">{item.metricLabel}</span>
-                  </div>
+              {/* Trust indicators */}
+              <div className="flex items-center gap-8 pt-8 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-cyrelis-mint" />
+                  <span className="text-sm text-slate-400">Partenaire Bitwarden</span>
                 </div>
-                <h3 className="font-heading font-bold text-lg text-slate-900 mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-slate-600 leading-relaxed">{item.desc}</p>
-                </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* LE SOCLE — Version améliorée, plus parlante */}
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 bg-white relative overflow-hidden">
-        <FloatingShapes variant="light" />
-
-        <div className="container mx-auto px-4 max-w-6xl relative z-10">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="text-center mb-16"
-          >
-            <motion.div variants={fadeInUp} className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-px bg-gradient-to-r from-transparent via-cyrelis-mint to-transparent" />
-              <span className="text-sm font-semibold text-cyrelis-mint uppercase tracking-wider">Notre approche</span>
-              <div className="w-12 h-px bg-gradient-to-r from-transparent via-cyrelis-mint to-transparent" />
-            </motion.div>
-            <motion.h2 
-              variants={fadeInUp}
-              className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mb-6"
-            >
-              Comment ça marche <span className="text-cyrelis-blue">concrètement</span> ?
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Deux étapes simples : on installe votre protection <span className="font-semibold text-slate-800">(une seule fois)</span>, puis on la maintient <span className="font-semibold text-slate-800">(chaque mois)</span>.
-            </motion.p>
-          </motion.div>
-
-          {/* BUILD vs RUN - Design plus clair */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={stagger}
-            className="grid md:grid-cols-2 gap-8 mb-16"
-          >
-            {/* Colonne BUILD */}
-            <motion.div 
-              variants={scaleIn}
-              whileHover={{ scale: 1.02 }}
-              className="relative bg-gradient-to-br from-cyrelis-mint/10 via-cyrelis-mint/5 to-white p-8 md:p-10 rounded-3xl border-2 border-cyrelis-mint/30"
-            >
-              <div className="absolute top-6 right-6">
-                <span className="px-4 py-1.5 bg-cyrelis-mint text-cyrelis-blue text-xs font-bold rounded-full uppercase tracking-wider">
-                  Paiement unique
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-4 bg-white rounded-2xl border border-cyrelis-mint/30 shadow-sm">
-                  <Wrench className="w-8 h-8 text-cyrelis-blue" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <h3 className="font-heading text-2xl font-bold text-slate-900">On Installe</h3>
-                  <p className="text-sm text-cyrelis-mint font-medium">Phase BUILD</p>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-cyrelis-mint" />
+                  <span className="text-sm text-slate-400">Chiffrement AES-256</span>
                 </div>
               </div>
-              
-              <p className="text-slate-600 leading-relaxed mb-8 text-lg">
-                Nous auditons vos pratiques, déployons vos outils de sécurité et formons votre équipe. <strong className="text-slate-800">C'est la fondation de votre protection.</strong>
-              </p>
-
-              <ul className="space-y-4 mb-8">
-                {[
-                  { icon: Target, text: "Audit de vos pratiques actuelles" },
-                  { icon: KeyRound, text: "Installation de votre coffre-fort de mots de passe" },
-                  { icon: Users, text: "Formation et accompagnement de vos équipes" },
-                  { icon: Shield, text: "Configuration de vos règles de sécurité" },
-                ].map((item, i) => (
-                  <motion.li 
-                    key={i}
-                    className="flex items-center gap-3 text-slate-700"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 * i }}
-                  >
-                    <div className="p-2 bg-white rounded-lg border border-cyrelis-mint/20">
-                      <item.icon className="w-4 h-4 text-cyrelis-mint" />
-                    </div>
-                    {item.text}
-                  </motion.li>
-                ))}
-              </ul>
-
-              <div className="pt-6 border-t border-cyrelis-mint/20">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-slate-900">{buildFee}€</span>
-                  <span className="text-slate-500">+ {buildPerUser}€/utilisateur</span>
-                    </div>
-                <p className="text-sm text-slate-500 mt-2">Investissement initial, réglé une seule fois</p>
-              </div>
-            </motion.div>
-
-            {/* Colonne RUN */}
-            <motion.div 
-              variants={scaleIn}
-              whileHover={{ scale: 1.02 }}
-              className="relative bg-gradient-to-br from-cyrelis-blue via-cyrelis-blue to-slate-900 text-white p-8 md:p-10 rounded-3xl"
-            >
-              <div className="absolute top-6 right-6">
-                <span className="px-4 py-1.5 bg-white/20 text-white text-xs font-bold rounded-full uppercase tracking-wider backdrop-blur-sm">
-                  Abonnement mensuel
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-4 bg-white/10 rounded-2xl border border-white/20">
-                  <RefreshCcw className="w-8 h-8 text-cyrelis-mint" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <h3 className="font-heading text-2xl font-bold text-white">On Maintient</h3>
-                  <p className="text-sm text-cyrelis-mint font-medium">Phase RUN</p>
-                </div>
-              </div>
-              
-              <p className="text-slate-300 leading-relaxed mb-8 text-lg">
-                Nous veillons sur votre sécurité au quotidien. Mises à jour, support, surveillance — <strong className="text-white">vous n'avez plus à y penser.</strong>
-              </p>
-
-              <ul className="space-y-4 mb-8">
-                {[
-                  { icon: TrendingUp, text: "Mises à jour de sécurité automatiques" },
-                  { icon: Headphones, text: "Support prioritaire par téléphone ou email" },
-                  { icon: Target, text: "Surveillance continue de vos accès" },
-                  { icon: BookOpen, text: "Rapports mensuels de sécurité" },
-                ].map((item, i) => (
-                  <motion.li 
-                    key={i}
-                    className="flex items-center gap-3 text-slate-200"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 * i }}
-                  >
-                    <div className="p-2 bg-white/10 rounded-lg border border-white/10">
-                      <item.icon className="w-4 h-4 text-cyrelis-mint" />
-                    </div>
-                    {item.text}
-                  </motion.li>
-                ))}
-              </ul>
-
-              <div className="pt-6 border-t border-white/20">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm text-slate-300">À partir de</span>
-                  <span className="text-4xl font-bold text-white">{autonomyPrice}€</span>
-                  <span className="text-slate-300">/user/mois</span>
-                </div>
-                <p className="text-sm text-slate-400 mt-2">Sans engagement, ajustable selon vos besoins</p>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Produit phare : Bitwarden */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={scaleIn}
-            className="bg-slate-50 p-8 md:p-12 rounded-3xl border border-slate-200"
-          >
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <div className="inline-flex items-center bg-cyrelis-blue/10 text-cyrelis-blue px-4 py-2 rounded-full text-sm font-semibold mb-6">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Outil principal
-                </div>
-                <h3 className="font-heading text-3xl font-bold text-slate-900 mb-4">
-                  Bitwarden Enterprise
-                </h3>
-                <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                  Le gestionnaire de mots de passe n°1 des entreprises. Vos équipes partagent 
-                  leurs accès en toute sécurité, sans post-its ni fichiers Excel.
-                </p>
-                <ul className="grid grid-cols-2 gap-3">
-                  {[
-                    "Coffre-fort illimité",
-                    "Partage d'équipe sécurisé",
-                    "Connexion double facteur",
-                    "Compatible tous vos appareils",
-                  ].map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-cyrelis-mint flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex justify-center">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-br from-cyrelis-mint/20 to-cyrelis-blue/20 rounded-3xl blur-xl"></div>
-                  <div className="relative bg-white p-8 rounded-2xl border border-slate-200 shadow-xl">
-                    <div className="p-4 bg-cyrelis-blue rounded-xl w-fit mb-4">
-                      <KeyRound className="w-12 h-12 text-white" strokeWidth={1.5} />
-                    </div>
-                    <div className="text-sm text-slate-500 mb-1">Inclus dans toutes nos offres</div>
-                    <div className="text-2xl font-bold text-slate-900">Licence complète</div>
-                  </div>
-                </div>
-              </div>
-              </div>
-            </motion.div>
-
-          {/* CTA */}
-            <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="mt-16 text-center"
-          >
-            <Link href="/simulateur">
-              <Button className="h-14 px-10 bg-cyrelis-blue text-white font-semibold hover:bg-slate-800 rounded-xl shadow-lg shadow-cyrelis-blue/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
-                Calculer mon tarif personnalisé
-                <ChevronRight className="ml-2 h-5 w-5" strokeWidth={2} />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* FORMULES - Design épuré */}
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 bg-slate-50 relative overflow-hidden">
-        <AnimatedGradient variant="mint" />
-        
-        <div className="container mx-auto px-4 max-w-5xl relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="text-center mb-16"
-          >
-            <motion.h2 
-              variants={fadeInUp}
-              className="font-heading text-4xl font-bold text-slate-900 mb-4"
-            >
-              Choisissez votre niveau d'accompagnement
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-slate-600">
-              Vous préférez gérer vous-même ou être totalement tranquille ?
-            </motion.p>
-          </motion.div>
-
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto"
-          >
-            {/* Offre Autonomie */}
-            <motion.div
-              variants={scaleIn}
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-3xl border border-slate-200 p-10 shadow-sm hover:shadow-2xl transition-all duration-500"
-            >
-              <div className="mb-8">
-                <h3 className="font-heading text-2xl font-bold text-slate-900 mb-2">
-                  {autonomyOffer?.name ?? "Offre Autonomie"}
-                </h3>
-                <p className="text-slate-500">
-                  {autonomyOffer?.shortDesc ?? "Vous gérez, nous maintenons."}
-                </p>
-              </div>
-
-              <div className="mb-8">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-bold text-slate-900">
-                    {autonomyPrice}
-                  </span>
-                  <span className="text-slate-500 text-lg">€/user/mois</span>
-                </div>
-                 </div>
-
-              <ul className="space-y-4 mb-10">
-                {(autonomyOffer?.features ?? [
-                  "Licence Bitwarden Enterprise",
-                  "Support par ticket (J+2)",
-                  "Mises à jour de sécurité",
-                  "Documentation complète",
-                ]).map((feature, i) => (
-                  <motion.li 
-                    key={i} 
-                    className="flex items-start gap-3"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 * i }}
-                  >
-                    <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">{feature}</span>
-                  </motion.li>
-                ))}
-              </ul>
-
-              <Link href="/simulateur" className="block">
-                <Button variant="outline" className="w-full h-14 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 font-semibold rounded-xl text-lg">
-                  Choisir Autonomie
-                </Button>
-              </Link>
-            </motion.div>
-
-            {/* Offre Partenaire */}
-            <motion.div
-              variants={scaleIn}
-              whileHover={{ y: -10 }}
-              className="relative bg-gradient-to-b from-white to-cyrelis-blue/5 rounded-3xl border-2 border-cyrelis-blue p-10 shadow-xl shadow-cyrelis-blue/10 hover:shadow-2xl hover:shadow-cyrelis-blue/20 transition-all duration-500"
-            >
-              <motion.div 
-                className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 text-sm font-bold bg-cyrelis-blue text-white rounded-full shadow-lg"
-                animate={{ y: [0, -3, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                ✨ Recommandé
-              </motion.div>
-
-              <div className="mb-8 pt-4">
-                <h3 className="font-heading text-2xl font-bold text-slate-900 mb-2">
-                  {partnerOffer?.name ?? "Offre Partenaire"}
-                </h3>
-                <p className="text-slate-500">
-                  {partnerOffer?.shortDesc ?? "Nous gérons, vous êtes sereins."}
-                </p>
-              </div>
-
-              <div className="mb-8">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-bold text-cyrelis-blue">
-                    {partnerPrice}
-                  </span>
-                  <span className="text-slate-500 text-lg">€/user/mois</span>
-                </div>
-              </div>
-
-              <ul className="space-y-4 mb-10">
-                {(partnerOffer?.features ?? [
-                  "Licence Bitwarden Enterprise",
-                  "Support prioritaire (J+1)",
-                  "Gestion complète par Cyrélis",
-                  "Rapports mensuels de sécurité",
-                  "Accès SSO & LDAP inclus",
-                  "Formations utilisateurs",
-                ]).map((feature, i) => (
-                  <motion.li 
-                    key={i} 
-                    className="flex items-start gap-3"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 * i }}
-                  >
-                    <CheckCircle2 className="w-5 h-5 text-cyrelis-mint mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">{feature}</span>
-                  </motion.li>
-                ))}
-              </ul>
-
-              <Link href="/simulateur" className="block">
-                <Button className="w-full h-14 bg-cyrelis-blue hover:bg-slate-800 font-semibold rounded-xl text-lg shadow-lg shadow-cyrelis-blue/20">
-                  Choisir Partenaire
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-            </motion.div>
-          </motion.div>
-
-          {/* Module IA en option */}
-          {iaModule && (
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mt-12 max-w-2xl mx-auto"
-            >
-              <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-2xl flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/10 rounded-xl">
-                    <Server className="w-6 h-6 text-cyrelis-mint" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">{iaModule.name}</h4>
-                    <p className="text-sm text-slate-400">{iaQuota}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-bold text-cyrelis-mint">+{iaPrice}€</span>
-                  <span className="text-sm text-slate-400 ml-1">/user/mois</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* TECHNOLOGIE BITWARDEN */}
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-12 bg-gradient-to-r from-cyrelis-blue via-cyrelis-blue to-slate-900 relative overflow-hidden">
-        {/* Effet de grille */}
-        <div className="absolute inset-0 opacity-5">
-          <div 
-            className="w-full h-full"
-            style={{
-              backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
-              backgroundSize: '25px 25px',
-            }}
-          />
-        </div>
-        
-        <div className="container mx-auto px-4 max-w-5xl relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12"
-          >
-            {/* Texte intro */}
-            <div className="flex items-center gap-3 text-white">
-              <Shield className="w-6 h-6 text-cyrelis-mint" strokeWidth={1.5} />
-              <span className="text-lg font-medium">Notre solution repose sur</span>
             </div>
 
-            {/* Logo Bitwarden */}
-            <motion.a 
-              href="https://bitwarden.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-4 bg-white rounded-2xl px-6 py-3 hover:bg-slate-50 transition-colors shadow-lg"
-              whileHover={{ scale: 1.02 }}
-            >
-              <img 
-                src="https://i.postimg.cc/MTgXqH4z/vertical-blue-logo.png"
-                alt="Bitwarden"
-                className="h-10 w-auto"
-              />
-            </motion.a>
-
-            {/* Séparateur */}
-            <div className="hidden md:block w-px h-10 bg-white/20" />
-
-            {/* Badges */}
-            <div className="flex items-center gap-2 md:gap-3">
-              <span className="px-3 py-1.5 bg-cyrelis-mint/20 text-cyrelis-mint rounded-full text-xs md:text-sm font-semibold whitespace-nowrap">N°1 mondial</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-full text-xs md:text-sm text-white font-medium whitespace-nowrap">Certifié SOC2</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-full text-xs md:text-sm text-white font-medium whitespace-nowrap">Zero-Knowledge</span>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* ILS NOUS FONT CONFIANCE */}
-      {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-16 bg-slate-50 relative overflow-hidden">
-        <GridBackground />
-        
-        <div className="container mx-auto px-4 max-w-5xl relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <div className="flex items-center justify-center gap-3 mb-8">
-              <div className="w-12 h-px bg-gradient-to-r from-transparent via-cyrelis-mint to-transparent" />
-              <span className="text-sm font-semibold text-cyrelis-blue uppercase tracking-wider">
-                Ils nous font confiance
-              </span>
-              <div className="w-12 h-px bg-gradient-to-r from-transparent via-cyrelis-mint to-transparent" />
-            </div>
-
-            {/* Logos clients */}
-            <div className="flex flex-wrap items-center justify-center gap-12">
-              {/* Logo Terra */}
-              <motion.div 
-                className="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 hover:shadow-xl transition-shadow"
-                whileHover={{ y: -5 }}
-              >
-                <img 
-                  src="https://i.postimg.cc/L4yZ04Nd/Capture-d-e-cran-2025-12-08-a-10-18-18.png"
-                  alt="Terra"
-                  className="h-12 w-auto object-contain"
+            {/* Colonne droite - Logo Cyrélis */}
+            <div className="hidden lg:flex justify-center items-center">
+              <div className="relative w-48 h-48 rounded-2xl overflow-hidden border border-white/20 shadow-xl">
+                <Image
+                  src="https://i.postimg.cc/NMBBGpDL/Gemini-Generated-Image-9zcx399zcx399zcx.png"
+                  alt="Logo Cyrélis"
+                  fill
+                  className="object-cover"
                 />
-              </motion.div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              {/* Placeholder pour futurs clients */}
-              <motion.div 
-                className="bg-white/50 border-2 border-dashed border-slate-200 rounded-2xl p-6 flex items-center justify-center h-28 w-44"
-                whileHover={{ borderColor: '#2dd4bf' }}
-              >
-                <span className="text-slate-400 text-sm text-center">Votre entreprise ?</span>
-              </motion.div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION SERVICES - Cards épurées */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 bg-slate-50">
+        <div className="container mx-auto px-4 max-w-6xl">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <span className="text-sm font-semibold text-cyrelis-blue uppercase tracking-widest">
+              Notre expertise
+              </span>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6">
+              Une protection complète et lisible
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Trois piliers fondamentaux pour sécuriser durablement votre activité.
+            </p>
           </div>
 
-            <p className="mt-8 text-slate-500 text-sm">
-              Rejoignez les entreprises qui ont choisi de sécuriser leur activité avec Cyrélis
-            </p>
-          </motion.div>
+          {/* Services Grid */}
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: KeyRound,
+                title: "Gestion des accès",
+                description: "Coffre-fort de mots de passe Bitwarden Enterprise. Génération, stockage et partage sécurisé pour toute votre équipe.",
+                color: "bg-teal-500",
+              },
+              {
+                icon: Shield,
+                title: "Protection des postes",
+                description: "Antivirus nouvelle génération SentinelOne avec IA. Détection et neutralisation automatique des menaces.",
+                color: "bg-blue-600",
+              },
+              {
+                icon: RefreshCcw,
+                title: "Maintenance proactive",
+                description: "Supervision continue via NinjaOne. Mises à jour automatiques, alertes et interventions à distance.",
+                color: "bg-purple-600",
+              },
+            ].map((service, i) => (
+              <div 
+                  key={i} 
+                className="group bg-white rounded-2xl p-8 border border-slate-200 hover:border-slate-300 hover:shadow-xl transition-all duration-300"
+              >
+                <div className={`w-14 h-14 ${service.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <service.icon className="w-7 h-7 text-white" strokeWidth={1.5} />
+                  </div>
+                <h3 className="font-heading text-xl font-bold text-slate-900 mb-3">
+                  {service.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  {service.description}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* ÉQUIPE - Section humanisée */}
+      {/* SECTION COMMENT ÇA MARCHE - Timeline professionnelle */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 bg-white relative overflow-hidden">
-        <FloatingShapes variant="light" />
-        
-        <div className="container mx-auto px-4 max-w-4xl text-center relative z-10">
-           <motion.div
-            initial="hidden"
-            whileInView="visible"
-             viewport={{ once: true }}
-            variants={stagger}
-          >
-            <motion.div variants={fadeInUp} className="flex justify-center mb-10">
-              <div className="flex items-center -space-x-4">
-                <motion.div 
-                  className="w-20 h-20 rounded-2xl border-4 border-white bg-slate-200 overflow-hidden shadow-xl relative z-10"
-                  whileHover={{ scale: 1.1, rotate: -5 }}
-                >
-                  <img
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Colonne gauche - Texte */}
+            <div>
+              <span className="text-sm font-semibold text-cyrelis-blue uppercase tracking-widest">
+                Notre approche
+                </span>
+              <h2 className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6">
+                Deux étapes pour vous protéger
+              </h2>
+              <p className="text-xl text-slate-600 mb-12">
+                Une installation soignée, puis un accompagnement continu. 
+                Simple et transparent.
+              </p>
+
+              {/* Steps */}
+              <div className="space-y-8">
+                {/* Step 1 */}
+                <div className="flex gap-6">
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-cyrelis-mint rounded-xl flex items-center justify-center">
+                      <Wrench className="w-6 h-6 text-slate-900" />
+                </div>
+                    <div className="w-px h-full bg-slate-200 mt-4" />
+                </div>
+                  <div className="pb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-heading text-xl font-bold text-slate-900">Installation</h3>
+                      <span className="px-3 py-1 bg-cyrelis-mint/20 text-cyrelis-blue text-xs font-semibold rounded-full">
+                        Une seule fois
+                      </span>
+              </div>
+                    <p className="text-slate-600 mb-4">
+                      Nous auditons vos pratiques, déployons les outils et formons votre équipe.
+                    </p>
+                    <ul className="space-y-2">
+                      {["Audit de sécurité initial", "Déploiement des solutions", "Formation personnalisée"].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
+                          <CheckCircle2 className="w-4 h-4 text-cyrelis-mint" />
+                          {item}
+                        </li>
+                ))}
+              </ul>
+                    </div>
+              </div>
+
+                {/* Step 2 */}
+                <div className="flex gap-6">
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center">
+                      <RefreshCcw className="w-6 h-6 text-white" />
+              </div>
+                </div>
+                <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-heading text-xl font-bold text-slate-900">Accompagnement</h3>
+                      <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">
+                        Continu
+                      </span>
+                </div>
+                    <p className="text-slate-600 mb-4">
+                      Nous veillons sur vos systèmes, assurons les mises à jour et restons disponibles.
+                    </p>
+                    <ul className="space-y-2">
+                      {["Mises à jour automatiques", "Surveillance 24/7", "Support prioritaire"].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
+                          <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                          {item}
+                        </li>
+                ))}
+              </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="mt-12">
+                <Link href="/simulateur">
+                  <Button className="h-12 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-xl font-semibold">
+                    Configurer mon offre
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                </div>
+              </div>
+
+            {/* Colonne droite - Image */}
+            <div className="relative hidden lg:block">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                <Image
+                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2940&auto=format&fit=crop"
+                  alt="Équipe travaillant"
+                  width={600}
+                  height={700}
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+                </div>
+              
+              {/* Floating card */}
+              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl p-6 shadow-xl border border-slate-100 max-w-xs">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Target className="w-6 h-6 text-emerald-600" />
+              </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">Tarif sur devis</p>
+                    <p className="text-sm text-slate-500">Adapté à votre structure</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* PARTENAIRES TECHNOLOGIQUES */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 bg-slate-900">
+        <div className="container mx-auto px-4 max-w-6xl">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <span className="text-sm font-semibold text-cyrelis-mint uppercase tracking-widest">
+              Écosystème
+            </span>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-white mt-4 mb-6">
+              Propulsé par les leaders
+            </h2>
+            <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+              Nous avons sélectionné les meilleures solutions mondiales.
+                </p>
+              </div>
+
+          {/* Partners Grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Bitwarden",
+                role: "Gestion des mots de passe",
+                logo: "https://i.postimg.cc/MTgXqH4z/vertical-blue-logo.png",
+                tags: ["Open Source", "SOC2", "Zero-Knowledge"],
+                url: "https://bitwarden.com",
+              },
+              {
+                name: "SentinelOne",
+                role: "Protection endpoint IA",
+                logo: "https://i.postimg.cc/cLNV7MpR/Sentinel-One-id98b5u-Tfq-1.png",
+                tags: ["EDR/XDR", "IA Autonome", "Gartner Leader"],
+                url: "https://sentinelone.com",
+              },
+              {
+                name: "NinjaOne",
+                role: "Supervision & maintenance",
+                logo: "https://i.postimg.cc/hj3rCchH/ninja-One-logo-blue.png",
+                tags: ["RMM", "Patch Mgmt", "#1 G2"],
+                url: "https://ninjaone.com",
+              },
+            ].map((partner, i) => (
+              <a
+                key={i}
+                href={partner.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-white rounded-2xl p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={120}
+                    height={40}
+                    className="h-10 w-auto object-contain"
+                  />
+                  <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-slate-900 transition-colors" />
+                </div>
+                <h3 className="font-heading text-lg font-bold text-slate-900 mb-1">
+                  {partner.name}
+                </h3>
+                <p className="text-sm text-slate-500 mb-4">{partner.role}</p>
+                <div className="flex flex-wrap gap-2">
+                  {partner.tags.map((tag, j) => (
+                    <span key={j} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-lg">
+                      {tag}
+                  </span>
+                  ))}
+                </div>
+              </a>
+            ))}
+                 </div>
+
+          {/* Trust badge */}
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+              <CheckCircle2 className="w-5 h-5 text-cyrelis-mint" />
+              <span className="text-white font-medium">Partenaire certifié de ces solutions</span>
+              </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* ÉQUIPE */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 bg-slate-50">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center">
+            {/* Photos */}
+            <div className="flex justify-center mb-8">
+              <div className="flex -space-x-4">
+                <div className="w-20 h-20 rounded-2xl border-4 border-white overflow-hidden shadow-lg">
+                  <Image
                     src="https://i.postimg.cc/MHyS7KRY/AO4A9978_MATTHIEU_V_20X30.jpg"
                     alt="Matthieu"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
-                </motion.div>
-                <motion.div 
-                  className="w-20 h-20 rounded-2xl border-4 border-white bg-slate-800 overflow-hidden shadow-xl"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <img
+                </div>
+                <div className="w-20 h-20 rounded-2xl border-4 border-white overflow-hidden shadow-lg">
+                  <Image
                     src="https://i.postimg.cc/4NQGnyXv/RD049.jpg"
                     alt="Ethan"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
-                </motion.div>
-                 </div>
-            </motion.div>
+                </div>
+                </div>
+              </div>
 
-            <motion.h2 
-              variants={fadeInUp}
-              className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mb-6"
-            >
-              Deux experts, <span className="text-cyrelis-mint">vos interlocuteurs directs</span>
-            </motion.h2>
-            <motion.p 
-              variants={fadeInUp}
-              className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed"
-            >
-              <strong className="text-slate-800">Matthieu</strong> vous accompagne au quotidien.{" "}
-              <strong className="text-slate-800">Ethan</strong> construit votre infrastructure. 
-              Pas de chatbot, pas de call center — <span className="text-cyrelis-blue font-semibold">vous nous parlez directement.</span>
-            </motion.p>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Vos interlocuteurs directs
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-8">
+              <strong>Matthieu</strong> vous accompagne au quotidien. <strong>Ethan</strong> construit votre infrastructure. 
+              Pas de chatbot, pas de call center.
+            </p>
 
-            <motion.div variants={fadeInUp}>
-              <Link href="/a-propos">
+            <Link href="/a-propos">
+              <Button variant="outline" className="h-12 px-6 border-2 border-slate-200 hover:border-slate-300 rounded-xl font-semibold">
+                Découvrir notre histoire
+                <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+                  </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* TÉMOIGNAGE */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-12">
+            <span className="text-sm font-semibold text-cyrelis-blue uppercase tracking-widest">
+              Ils nous font confiance
+            </span>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 md:p-12">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              {/* Logo client - mis en valeur */}
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white p-2">
+                  <Image
+                    src="https://i.postimg.cc/L4yZ04Nd/Capture-d-e-cran-2025-12-08-a-10-18-18.png"
+                    alt="Terra"
+                    width={128}
+                    height={128}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+
+              {/* Témoignage - plus compact */}
+              <div className="flex-1 text-center md:text-left">
+                <Quote className="w-8 h-8 text-slate-200 mb-4 mx-auto md:mx-0" />
+                <blockquote className="text-lg text-slate-700 leading-relaxed mb-4">
+                  "Cyrélis nous a permis de sécuriser nos accès sans complexifier notre quotidien."
+                </blockquote>
+                <div>
+                  <p className="font-semibold text-slate-900">Terra</p>
+                  <p className="text-sm text-slate-500">Client depuis 2025</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* CTA FINAL */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 bg-gradient-to-br from-slate-900 via-cyrelis-blue to-slate-900">
+        <div className="container mx-auto px-4 max-w-4xl text-center">
+          <h2 className="font-heading text-4xl md:text-5xl font-bold text-white mb-6">
+            Prêt à sécuriser votre activité ?
+          </h2>
+          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
+            Obtenez un devis personnalisé en quelques minutes.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/simulateur">
+              <Button className="h-14 px-10 bg-cyrelis-mint text-slate-900 font-semibold hover:bg-white rounded-xl text-lg shadow-2xl">
+                Configurer mon offre
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/contact">
                 <Button
                   variant="outline"
-                  className="h-14 px-8 border-2 border-slate-200 hover:border-slate-300 font-semibold rounded-xl text-lg"
+                className="h-14 px-10 bg-transparent border-2 border-white/30 text-white hover:bg-white/10 font-medium rounded-xl text-lg"
                 >
-                 Découvrir notre histoire
-                  <ChevronRight className="ml-2 h-5 w-5" strokeWidth={2} />
+                <Headphones className="mr-2 h-5 w-5" />
+                Nous appeler
                </Button>
              </Link>
-            </motion.div>
-           </motion.div>
+          </div>
         </div>
       </section>
     </main>

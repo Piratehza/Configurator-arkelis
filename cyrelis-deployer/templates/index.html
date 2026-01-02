@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyrélis • Générateur d'identifiants Bitwarden</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --noir-profond: #0a0a0f;
+            --gris-carte: #16161d;
+            --gris-bord: #2a2a35;
+            --menthe: #2DD4BF;
+            --menthe-pale: rgba(45, 212, 191, 0.1);
+            --blanc: #f4f4f5;
+            --gris-texte: #a1a1aa;
+            --corail: #FB7185;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--noir-profond);
+            color: var(--blanc);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(45, 212, 191, 0.15), transparent),
+                radial-gradient(circle at 20% 80%, rgba(251, 113, 133, 0.08), transparent);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        
+        .logo span {
+            color: var(--menthe);
+        }
+        
+        header p {
+            color: var(--gris-texte);
+            font-size: 18px;
+        }
+        
+        /* Tutorial toggle */
+        .tutorial-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--menthe-pale);
+            border: 1px solid rgba(45, 212, 191, 0.3);
+            color: var(--menthe);
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+        
+        .tutorial-toggle:hover {
+            background: rgba(45, 212, 191, 0.2);
+        }
+        
+        /* Tutorial section */
+        .tutorial {
+            background: var(--gris-carte);
+            border: 1px solid var(--gris-bord);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .tutorial.active {
+            display: block;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .tutorial h2 {
+            font-size: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tutorial-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .step-number {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            background: var(--menthe);
+            color: var(--noir-profond);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .step-content h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .step-content p {
+            color: var(--gris-texte);
+            font-size: 14px;
+        }
+        
+        .step-content code {
+            background: rgba(45, 212, 191, 0.1);
+            color: var(--menthe);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        /* Main card */
+        .main-card {
+            background: var(--gris-carte);
+            border: 1px solid var(--gris-bord);
+            border-radius: 20px;
+            padding: 32px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gris-bord);
+        }
+        
+        .card-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .counter {
+            background: var(--menthe-pale);
+            color: var(--menthe);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        /* Credentials list */
+        .credentials-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .credential-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--gris-bord);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        
+        .credential-item:hover {
+            border-color: rgba(45, 212, 191, 0.3);
+        }
+        
+        .credential-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .credential-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .credential-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--menthe), #14b8a6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .credential-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .credential-name.empty {
+            color: var(--gris-texte);
+            font-style: italic;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--gris-texte);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(251, 113, 133, 0.1);
+            color: var(--corail);
+        }
+        
+        /* Form fields */
+        .fields-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        @media (max-width: 600px) {
+            .fields-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .field.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .field label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gris-texte);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .field-help {
+            font-size: 11px;
+            color: #52525b;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+        
+        .field-help code {
+            background: rgba(45, 212, 191, 0.1);
+            color: var(--menthe);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        
+        .field input,
+        .field textarea {
+            background: var(--noir-profond);
+            border: 1px solid var(--gris-bord);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 14px;
+            color: var(--blanc);
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .field input:focus,
+        .field textarea:focus {
+            outline: none;
+            border-color: var(--menthe);
+            box-shadow: 0 0 0 3px var(--menthe-pale);
+        }
+        
+        .field input::placeholder,
+        .field textarea::placeholder {
+            color: #52525b;
+        }
+        
+        .field textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        /* Password field */
+        .password-wrapper {
+            position: relative;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 80px;
+        }
+        
+        .password-actions {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 4px;
+        }
+        
+        .password-action {
+            background: var(--gris-bord);
+            border: none;
+            color: var(--gris-texte);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .password-action:hover {
+            background: var(--menthe);
+            color: var(--noir-profond);
+        }
+        
+        /* Buttons */
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--menthe), #14b8a6);
+            color: var(--noir-profond);
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(45, 212, 191, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--gris-bord);
+            color: var(--blanc);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--blanc);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--gris-texte);
+        }
+        
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gris-bord);
+            color: var(--gris-texte);
+            font-size: 13px;
+        }
+        
+        footer a {
+            color: var(--menthe);
+            text-decoration: none;
+        }
+        
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--menthe);
+            color: var(--noir-profond);
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Cyrélis<span>.</span></div>
+            <p>Générateur d'identifiants pour Bitwarden</p>
+            
+            <button class="tutorial-toggle" onclick="toggleTutorial()">
+                📖 Comment ça marche ?
+            </button>
+        </header>
+        
+        <section class="tutorial" id="tutorial">
+            <h2>🚀 Guide rapide</h2>
+            <div class="tutorial-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Remplissez vos identifiants</h3>
+                        <p>Ajoutez vos comptes ci-dessous : nom du service, URL, identifiant et mot de passe.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Téléchargez le fichier CSV</h3>
+                        <p>Cliquez sur <code>Exporter pour Bitwarden</code> pour télécharger le fichier.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Importez dans Bitwarden</h3>
+                        <p>Ouvrez Bitwarden → <code>Outils</code> → <code>Importer des données</code> → Format : <code>Bitwarden (csv)</code> → Sélectionnez le fichier.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>C'est terminé !</h3>
+                        <p>Vos identifiants sont maintenant dans votre coffre-fort Bitwarden. 🎉</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <main class="main-card">
+            <div class="card-header">
+                <h2>🔐 Vos identifiants</h2>
+                <span class="counter" id="counter">0 entrée</span>
+            </div>
+            
+            <div class="credentials-list" id="credentialsList">
+                <div class="empty-state" id="emptyState">
+                    <div class="icon">🔑</div>
+                    <p>Aucun identifiant pour l'instant</p>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="addCredential()">
+                    ➕ Ajouter
+                </button>
+                <button class="btn btn-secondary" onclick="clearAll()" style="border-color: var(--corail); color: var(--corail);">
+                    🗑️ Tout effacer
+                </button>
+                <button class="btn btn-primary" onclick="exportCSV()" id="exportBtn">
+                    📥 Exporter pour Bitwarden
+                </button>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="security-badge">🔒 Aucune donnée stockée</div>
+            <p>Vos identifiants ne sont jamais enregistrés — tout reste en mémoire temporaire et disparaît à la fermeture de la page.</p>
+            <p style="margin-top: 8px;">Propulsé par <a href="#">Cyrélis</a></p>
+        </footer>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // SÉCURITÉ: Les données restent uniquement en mémoire JavaScript
+        // Aucun stockage localStorage, sessionStorage, cookies ou serveur
+        let credentials = [];
+        let counter = 0;
+        
+        // Effacer les données à la fermeture de la page
+        window.addEventListener('beforeunload', function() {
+            credentials = [];
+            counter = 0;
+        });
+        
+        // S'assurer qu'aucun stockage n'est utilisé
+        try {
+            localStorage.removeItem('credentials');
+            sessionStorage.removeItem('credentials');
+        } catch(e) {}
+        
+        function toggleTutorial() {
+            document.getElementById('tutorial').classList.toggle('active');
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        function generatePassword(length = 16) {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        }
+        
+        function addCredential() {
+            counter++;
+            credentials.push({
+                id: counter,
+                folder: '',
+                name: '',
+                login_uri: '',
+                login_username: '',
+                login_password: ''
+            });
+            renderCredentials();
+        }
+        
+        function removeCredential(id) {
+            credentials = credentials.filter(c => c.id !== id);
+            renderCredentials();
+        }
+        
+        function clearAll() {
+            if (credentials.length === 0) return;
+            if (confirm('⚠️ Effacer tous les identifiants ?\n\nCette action est irréversible.')) {
+                credentials = [];
+                counter = 0;
+                renderCredentials();
+                showToast('🗑️ Tout a été effacé');
+            }
+        }
+        
+        function updateCredential(id, field, value) {
+            const cred = credentials.find(c => c.id === id);
+            if (cred) {
+                cred[field] = value;
+            }
+            updateCounter();
+            // Update the displayed name in real-time
+            if (field === 'name') {
+                const nameEl = document.querySelector(`[data-name-id="${id}"]`);
+                if (nameEl) {
+                    if (value) {
+                        nameEl.textContent = value;
+                        nameEl.classList.remove('empty');
+                    } else {
+                        nameEl.textContent = 'Sans titre';
+                        nameEl.classList.add('empty');
+                    }
+                }
+            }
+        }
+        
+        function setGeneratedPassword(id) {
+            const password = generatePassword();
+            const input = document.getElementById(`password-${id}`);
+            input.value = password;
+            input.type = 'text';
+            updateCredential(id, 'login_password', password);
+            showToast('🎲 Mot de passe généré !');
+        }
+        
+        function togglePasswordVisibility(id) {
+            const input = document.getElementById(`password-${id}`);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+        
+        function updateCounter() {
+            const count = credentials.length;
+            document.getElementById('counter').textContent = count === 0 ? '0 entrée' : 
+                count === 1 ? '1 entrée' : `${count} entrées`;
+        }
+        
+        function renderCredentials() {
+            const container = document.getElementById('credentialsList');
+            updateCounter();
+            
+            if (credentials.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔑</div>
+                        <p>Aucun identifiant pour l'instant</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = credentials.map((cred, index) => `
+                <div class="credential-item">
+                    <div class="credential-header">
+                        <div class="credential-title">
+                            <div class="credential-icon">🔐</div>
+                            <span class="credential-name ${!cred.name ? 'empty' : ''}" data-name-id="${cred.id}">${cred.name || 'Sans titre'}</span>
+                        </div>
+                        <button class="delete-btn" onclick="removeCredential(${cred.id})" title="Supprimer">🗑️</button>
+                    </div>
+                    
+                    <div class="fields-grid">
+                        <div class="field">
+                            <label>Nom du service</label>
+                            <input type="text" value="${escapeHtml(cred.name)}" 
+                                onchange="updateCredential(${cred.id}, 'name', this.value)"
+                                placeholder="Ex: Gmail, Netflix...">
+                            <div class="field-help">Le nom qui apparaîtra dans votre coffre Bitwarden</div>
+                        </div>
+                        <div class="field">
+                            <label>Dossier (optionnel)</label>
+                            <input type="text" value="${escapeHtml(cred.folder)}" 
+                                onchange="updateCredential(${cred.id}, 'folder', this.value)"
+                                placeholder="Ex: Travail, Perso...">
+                            <div class="field-help">Pour organiser vos identifiants par catégorie</div>
+                        </div>
+                        <div class="field full-width">
+                            <label>URL du site</label>
+                            <input type="url" value="${escapeHtml(cred.login_uri)}" 
+                                onchange="updateCredential(${cred.id}, 'login_uri', this.value)"
+                                placeholder="https://accounts.google.com">
+                            <div class="field-help">
+                                <strong>⚠️ Important :</strong> Copiez l'URL de la <strong>page de connexion</strong>, pas la page d'accueil.<br>
+                                Exemples : <code>https://accounts.google.com</code> • <code>https://www.netflix.com/login</code> • <code>https://login.microsoftonline.com</code>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Identifiant / Email</label>
+                            <input type="text" value="${escapeHtml(cred.login_username)}" 
+                                onchange="updateCredential(${cred.id}, 'login_username', this.value)"
+                                placeholder="mon@email.com">
+                            <div class="field-help">Votre email ou nom d'utilisateur pour ce site</div>
+                        </div>
+                        <div class="field">
+                            <label>Mot de passe</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="password-${cred.id}" value="${escapeHtml(cred.login_password)}" 
+                                    onchange="updateCredential(${cred.id}, 'login_password', this.value)"
+                                    placeholder="••••••••">
+                                <div class="password-actions">
+                                    <button class="password-action" onclick="togglePasswordVisibility(${cred.id})" title="Afficher">👁️</button>
+                                    <button class="password-action" onclick="setGeneratedPassword(${cred.id})" title="Générer">🎲</button>
+                                </div>
+                            </div>
+                            <div class="field-help">Cliquez 🎲 pour générer un mot de passe sécurisé</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function exportCSV() {
+            if (credentials.length === 0) {
+                showToast('⚠️ Ajoutez au moins un identifiant');
+                return;
+            }
+            
+            // Vérifier qu'au moins un a un nom
+            const valid = credentials.filter(c => c.name && c.name.trim());
+            if (valid.length === 0) {
+                showToast('⚠️ Donnez un nom à vos identifiants');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/export-bitwarden-csv', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credentials: credentials })
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'bitwarden_import.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    showToast('✅ Fichier téléchargé !');
+                } else {
+                    showToast('❌ Erreur lors de l\'export');
+                }
+            } catch (error) {
+                showToast('❌ Erreur: ' + error.message);
+            }
+        }
+        
+        // Start with one empty credential
+        addCredential();
+    </script>
+</body>
+</html>

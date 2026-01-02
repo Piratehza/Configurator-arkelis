@@ -1,18 +1,12 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
+// Providers simplifié - pas d'authentification nécessaire
 export function Providers({ children }: ProvidersProps) {
-  return (
-    <SessionProvider>
-      {children}
-    </SessionProvider>
-  );
+  return <>{children}</>;
 }
-
-

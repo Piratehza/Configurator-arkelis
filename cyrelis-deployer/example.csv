@@ -1,0 +1,5 @@
+Email,Type,AccessAll,Groups
+user1@atheos.fr,0,false,
+user2@atheos.fr,0,false,
+manager@atheos.fr,3,false,DIRECTION
+admin@atheos.fr,2,true,ADMINS
