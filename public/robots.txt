@@ -1,0 +1,7 @@
+# Robots.txt pour Cyrelis.fr
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://cyrelis.fr/sitemap.xml
+
