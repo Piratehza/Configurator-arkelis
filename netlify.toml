@@ -6,40 +6,36 @@
 # │ BUILD PRINCIPAL (Production)                                                │
 # └─────────────────────────────────────────────────────────────────────────────┘
 [build]
-  command = "npm run build"
+  command = "npm install --include=dev && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--legacy-peer-deps"
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │ CONTEXTE: PRODUCTION (branche main)                                         │
 # │ → Affiche la page "En construction"                                         │
 # └─────────────────────────────────────────────────────────────────────────────┘
 [context.production]
-  command = "npm run build"
+  command = "npm install --include=dev && npm run build"
   [context.production.environment]
     APP_ENV = "production"
-    NODE_ENV = "production"
-    SHOW_COMING_SOON = "true"
+    SHOW_COMING_SOON = "false"
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │ CONTEXTE: STAGING (branche staging ou develop)                              │
 # │ → Affiche le site complet pour les tests                                    │
 # └─────────────────────────────────────────────────────────────────────────────┘
 [context.staging]
-  command = "npm run build"
+  command = "npm install --include=dev && npm run build"
   [context.staging.environment]
     APP_ENV = "staging"
-    NODE_ENV = "production"
     SHOW_COMING_SOON = "false"
 
 [context.develop]
-  command = "npm run build"
+  command = "npm install --include=dev && npm run build"
   [context.develop.environment]
     APP_ENV = "staging"
-    NODE_ENV = "production"
     SHOW_COMING_SOON = "false"
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -47,10 +43,9 @@
 # │ → Affiche le site complet pour les tests                                    │
 # └─────────────────────────────────────────────────────────────────────────────┘
 [context.deploy-preview]
-  command = "npm run build"
+  command = "npm install --include=dev && npm run build"
   [context.deploy-preview.environment]
     APP_ENV = "staging"
-    NODE_ENV = "production"
     SHOW_COMING_SOON = "false"
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -58,10 +53,9 @@
 # │ → Affiche le site complet pour les tests                                    │
 # └─────────────────────────────────────────────────────────────────────────────┘
 [context.branch-deploy]
-  command = "npm run build"
+  command = "npm install --include=dev && npm run build"
   [context.branch-deploy.environment]
     APP_ENV = "staging"
-    NODE_ENV = "production"
     SHOW_COMING_SOON = "false"
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
