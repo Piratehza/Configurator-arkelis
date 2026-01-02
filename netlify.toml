@@ -92,10 +92,10 @@
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │ REDIRECTIONS                                                                │
 # └─────────────────────────────────────────────────────────────────────────────┘
-# Redirection www vers non-www
-[[redirects]]
-  from = "https://www.cyrelis.fr/*"
-  to = "https://cyrelis.fr/:splat"
-  status = 301
-  force = true
+# Redirection www vers non-www (désactivée temporairement)
+# [[redirects]]
+#   from = "https://www.cyrelis.fr/*"
+#   to = "https://cyrelis.fr/:splat"
+#   status = 301
+#   force = true
 
