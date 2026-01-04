@@ -31,12 +31,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cyrelis.fr/premiers-pas-bitwarden</loc>
-    <lastmod>2025-01-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://cyrelis.fr/mentions-legales</loc>
     <lastmod>2025-01-02</lastmod>
     <changefreq>yearly</changefreq>
