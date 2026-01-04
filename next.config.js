@@ -6,11 +6,12 @@
 // Content Security Policy
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://player.vimeo.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' blob: data: https://i.postimg.cc https://*.supabase.co https://images.unsplash.com;
+  img-src 'self' blob: data: https://i.postimg.cc https://*.supabase.co https://images.unsplash.com https://i.vimeocdn.com;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vimeo.com https://player.vimeo.com;
+  frame-src 'self' https://player.vimeo.com;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self';
